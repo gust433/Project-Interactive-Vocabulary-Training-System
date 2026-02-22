@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>
+        {{ user.username }}'s Profile
+        {% if current_user == user.username %}
+            <span style="font-size: 0.6em; color: green;">(My Account)</span>
+        {% endif %}
+    </h2>
+{% endblock %}
