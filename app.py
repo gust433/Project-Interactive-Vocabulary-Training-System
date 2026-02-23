@@ -58,7 +58,7 @@ def init_databases():
                     password VARCHAR(255) NOT NULL,
                     email varchar(100),
                     score int,
-                    rank varchar(25),
+                    `rank` varchar(25),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
