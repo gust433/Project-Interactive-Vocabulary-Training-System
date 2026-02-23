@@ -1,6 +1,164 @@
-{% extends "layout.html" %}
-{% block content %}
-    <h1>Welcome to InstaNoSQL</h1>
-    <p>This is a simple social media platform built with Flask and NoSQL databases.</p>
-    <p>Use the navigation links above to explore the app.</p>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หน้าหลัก - เกมทายศัพท์</title>
+    <style>
+        /* ตั้งค่าพื้นหลังและฟอนต์ให้ดูสบายตา */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; /* สีพื้นหลังโทนฟ้าเทาอ่อนๆ */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* กล่องคอนเทนเนอร์หลัก */
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* ส่วนหัว (Header) */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            font-size: 2.2rem;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* ชื่อผู้ใช้โดดเด่น */
+        .highlight-name {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* เลย์เอาต์ของเมนู */
+        .menu-grid {
+            display: grid;
+            gap: 15px; /* ระยะห่างระหว่างการ์ด */
+        }
+
+        /* ตกแต่งการ์ดเมนูแต่ละอัน */
+        .menu-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* เอฟเฟกต์เวลาเอาเมาส์ชี้การ์ด */
+        .menu-card:hover {
+            transform: translateY(-10px); /* เลื่อนขึ้นนิดนึง */
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1); /* เพิ่มเงาให้ดูมีมิติ */
+        }
+
+        /* แถบสีด้านซ้ายของการ์ดแต่ละใบ */
+        .menu-card.play { border-left: 6px solid #4CAF50; }
+        .menu-card.profile { border-left: 6px solid #2196F3; }
+        .menu-card.dict { border-left: 6px solid #FF9800; }
+
+        /* ไอคอน (Emoji) */
+        .menu-icon {
+            font-size: 2.5rem;
+            margin-right: 20px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* ส่วนข้อความในการ์ด */
+        .menu-text h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        .menu-text p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        /* ปุ่มออกจากระบบ */
+        .logout-btn {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #fce4e4;
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #f5c6c6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Game Menu</h1>
+            <p>ยินดีต้อนรับ, <span class="highlight-name">{{ username }}</span>!</p>
+        </div>
+
+        <div class="menu-grid">
+            
+            <a href="{{ url_for('profile', username=username) }}" class="menu-card profile">
+                <div class="menu-icon">👤</div>
+                <div class="menu-text">
+                    <h3>โปรไฟล์ (Profile)</h3>
+                    <p>ดูข้อมูลส่วนตัว, แรงค์ และสถิติคำศัพท์</p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('test') }}" class="menu-card play">
+                <div class="menu-icon">🎮</div>
+                <div class="menu-text">
+                    <h3>เริ่มเล่นเกม (Play)</h3>
+                    <p>เข้าสู่โหมดทายศัพท์เพื่อเก็บคะแนน</p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('mydict') }}" class="menu-card dict">
+                <div class="menu-icon">📚</div>
+                <div class="menu-text">
+                    <h3>คลังคำศัพท์ (My Dict)</h3>
+                    <p>ทบทวนคำศัพท์ที่คุณเคยพบมาทั้งหมด</p>
+                </div>
+            </a>
+
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="logout-btn">🚪 ออกจากระบบ</a>
+    </div>
+
+</body>
+</html>

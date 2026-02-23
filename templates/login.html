@@ -1,10 +1,163 @@
-{% extends "layout.html" %}
-{% block content %}
-    <h2>Login</h2>
-    <form action="{{ url_for('login') }}" method="POST">
-        <input type="text" name="username" placeholder="Username" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
-        <button type="submit">Login</button>
-    </form>
-    <p>No account? <a href="{{ url_for('register') }}">Register</a></p>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - เกมทายศัพท์</title>
+    <style>
+        /* จัดวางให้อยู่กึ่งกลางหน้าจอและกำหนดพื้นหลัง */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* ตกแต่งกล่อง Login */
+        .login-box {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-top: 0;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ตกแต่งช่องกรอกข้อมูล */
+        .input-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        /* ตกแต่งปุ่มกด */
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .register-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .register-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .my-btn:hover {
+        background-color: #45a049; /* สีเวลาเอาเมาส์ไปชี้ */
+        }   
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h2>เข้าสู่ระบบ<br>🎮 เกมทายศัพท์</h2>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">ชื่อผู้ใช้ (Username)</label>
+                <input type="text" id="username" name="username" placeholder="กรอกชื่อผู้ใช้ของคุณ" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">รหัสผ่าน (Password)</label>
+                <input type="password" id="password" name="password" placeholder="กรอกรหัสผ่าน" required>
+            </div>
+            
+            <button type="submit">Play!</button>
+        </form>
+
+        <div class="register-link">
+            ยังไม่มีบัญชีใช่ไหม? <a href="register">สมัครสมาชิกที่นี่</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+
+            // 1. ดึงข้อมูล Username และ Password จากฟอร์ม
+            const formElement = document.getElementById('loginForm');
+            const formData = new FormData(formElement);
+
+            // 2. ส่งข้อมูลไปให้ Backend ตรวจสอบ
+            fetch('/login', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // 3. เช็คว่า Backend สั่ง Redirect ไหม (ถ้ารหัสถูก Python จะสั่งไปที่หน้า index)
+                if (response.redirected) {
+                    // พาผู้ใช้ย้ายหน้าเว็บไปยัง URL ที่ Python ส่งมา
+                    window.location.href = response.url; 
+                } else {
+                    // ถ้ารหัสผิด Python จะส่งข้อความ Error ธรรมดากลับมา
+                    return response.text();
+                }
+            })
+            .then(text => {
+                // 4. แสดงข้อความแจ้งเตือนถ้ารหัสผิด (เช่น "Invalid username or password.")
+                if (text) {
+                    alert(text);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ครับ');
+            });
+        });
+    </script>
+    
+</body>
+</html>

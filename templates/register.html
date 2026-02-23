@@ -1,9 +1,195 @@
-{% extends "layout.html" %}
-{% block content %}
-    <h2>Register</h2>
-    <form action="{{ url_for('register') }}" method="POST">
-        <input type="text" name="username" placeholder="Choose a Username" required><br>
-        <input type="password" name="password" placeholder="Choose a Password" required><br>
-        <button type="submit">Register</button>
-    </form>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมัครสมาชิก - เกมทายศัพท์</title>
+    <style>
+        /* จัดวางให้อยู่กึ่งกลางหน้าจอและกำหนดพื้นหลัง */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* ตกแต่งกล่อง Register */
+        .register-box {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .register-box h2 {
+            margin-top: 0;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ตกแต่งช่องกรอกข้อมูล */
+        .input-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        /* ตกแต่งข้อความแจ้งเตือน Error */
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            text-align: left;
+            display: none; /* ซ่อนไว้ก่อน จะแสดงเมื่อรหัสไม่ตรงกัน */
+        }
+
+        /* ตกแต่งปุ่มกด */
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* ลิงก์กลับไปหน้า Login */
+        .login-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .login-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-box">
+        <h2>สมัครสมาชิก<br>🎮 เกมทายศัพท์</h2>
+        
+        <form id="registerForm">
+            <div class="input-group">
+                <label for="username">ชื่อผู้ใช้ (Username)</label>
+                <input type="text" id="username" name="username" placeholder="ตั้งชื่อผู้ใช้ของคุณ" required>
+            </div>
+
+            <div class="input-group">
+                <label for="email">อีเมล (Email)</label>
+                <input type="email" id="email" name="email" placeholder="กรอกอีเมล" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">รหัสผ่าน (Password)</label>
+                <input type="password" id="password" name="password" placeholder="ตั้งรหัสผ่าน" required>
+            </div>
+
+            <div class="input-group">
+                <label for="confirmPassword">ยืนยันรหัสผ่าน (Confirm Password)</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+            </div>
+            
+            <div id="passwordError" class="error-message">รหัสผ่านไม่ตรงกัน กรุณาลองใหม่</div>
+
+            <button type="submit">ยืนยันการสมัคร</button>
+        </form>
+
+        <div class="login-link">
+            มีบัญชีอยู่แล้วใช่ไหม? <a href="login.html">เข้าสู่ระบบที่นี่</a>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const errorMsg = document.getElementById('passwordError');
+
+        // 1. เช็คว่ารหัสผ่าน 2 ช่องตรงกันหรือไม่
+        if (password !== confirmPassword) {
+            errorMsg.style.display = 'block'; 
+            return; // หยุดการทำงาน ไม่ส่งข้อมูลต่อ
+        } else {
+            errorMsg.style.display = 'none'; 
+        }
+
+        // 2. ดึงข้อมูลทั้งหมดจากฟอร์มเตรียมส่งให้ Python
+        const formElement = document.getElementById('registerForm');
+        const formData = new FormData(formElement);
+
+        // 3. ยิงข้อมูลไปที่ Endpoint /register ของคุณ
+        fetch('/register', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            // 4. เช็คว่า Backend สั่ง Redirect ไปหน้า index หรือไม่
+            if (response.redirected) {
+                // ถ้าย้ายหน้าแปลว่าสำเร็จ (ระบบ auto-login ให้แล้ว)
+                //alert('สมัครสมาชิกสำเร็จ! ยินดีต้อนรับเข้าสู่เกมครับ 🎮');
+                window.location.href = response.url; 
+            } else {
+                // ถ้าไม่ย้ายหน้า แปลว่าติด Error (เช่น "Username already exists...") ให้ดึงข้อความมา
+                return response.text(); 
+            }
+        })
+        .then(text => {
+            if (text) {
+                // 5. แจ้งเตือนข้อความ Error ตามที่ Python ส่งมา
+                alert(text); 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+        });
+    });
+    </script>
+    
+</body>
+</html>

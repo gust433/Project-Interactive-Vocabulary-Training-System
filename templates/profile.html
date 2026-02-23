@@ -1,9 +1,151 @@
-{% extends "layout.html" %}
-{% block content %}
-    <h2>
-        {{ user.username }}'s Profile
-        {% if current_user == user.username %}
-            <span style="font-size: 0.6em; color: green;">(My Account)</span>
-        {% endif %}
-    </h2>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์ - เกมทายศัพท์</title>
+    <style>
+        /* ตั้งค่าพื้นหลังให้ตรงกับหน้า Home */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; 
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* กล่องคอนเทนเนอร์หลัก */
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* ปุ่มย้อนกลับ */
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #7f8c8d;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #2c3e50;
+        }
+
+        /* การ์ดโปรไฟล์ */
+        .profile-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        /* รูปโปรไฟล์จำลอง (Avatar) */
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background-color: #e0f2f1;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem;
+            margin: 0 auto 15px auto;
+            border: 4px solid #4CAF50; /* กรอบสีเขียว */
+        }
+
+        /* ชื่อผู้เล่น */
+        .username {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #2c3e50;
+        }
+
+        .role-text {
+            color: #95a5a6;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            margin-bottom: 25px;
+        }
+
+        /* กล่องสถิติ (Rank และ Total Words) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* แบ่งครึ่งซ้ายขวาเท่าๆ กัน */
+            gap: 15px;
+        }
+
+        .stat-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        /* ปรับสีของแต่ละกล่องให้ต่างกันนิดหน่อย */
+        .stat-box.rank { border-bottom: 4px solid #FF9800; } /* สีส้ม */
+        .stat-box.words { border-bottom: 4px solid #2196F3; } /* สีฟ้า */
+
+        .stat-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* ตกแต่งไอคอนในสถิติ */
+        .stat-value span {
+            font-size: 1.2rem;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <a href="home.html" class="back-btn">⬅️ กลับหน้าหลัก</a>
+
+        <div class="profile-card">
+            
+            <div class="avatar">👦🏻</div>
+            
+            <h2 class="username">Player_01</h2>
+            <div class="role-text">สมาชิกเกมทายศัพท์</div>
+
+            <div class="stats-grid">
+                
+                <div class="stat-box rank">
+                    <span class="stat-label">Rank</span>
+                    <span class="stat-value">Master <span>🏆</span></span>
+                </div>
+
+                <div class="stat-box words">
+                    <span class="stat-label">Total Words</span>
+                    <span class="stat-value">999 <span>📚</span></span>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+</body>
+</html>

@@ -9,9 +9,10 @@ db = get_mongo_collection()
 app.secret_key = 'your_secret_key'
 
 @app.route('/')
+@app.route('/index')
 def index():
     if 'username' in session:
-        return redirect(url_for('profile', username=session['username']))
+        return render_template('index.html', username=session['username'])
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -55,6 +56,9 @@ def init_databases():
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     username VARCHAR(100) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
+                    email varchar(100),
+                    score int,
+                    rank varchar(25),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -83,7 +87,8 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
+        email = request.form.get('email')
+        
         conn = None
         cursor = None
         try:
@@ -96,13 +101,13 @@ def register():
             if cursor.fetchone():
                 return "Username already exists. Please choose a different one."
             
-            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+            cursor.execute("INSERT INTO users (username, password, email, score, `rank`) VALUES (%s, %s, %s, %s, %s)", (username, password, email, 0, 'Bronze'))
             conn.commit()
 
-            db.users.insert_one({'username': username})
+            #db.users.insert_one({'username': username})
 
             session['username'] = username
-            return redirect(url_for('index'))
+            return redirect(url_for('login'))
             
         except mysql.connector.Error as err:
             return str(err), 500
@@ -114,13 +119,36 @@ def register():
 
 @app.route('/profile/<username>')
 def profile(username):
+    # เช็คว่าคนที่กดเข้ามาดู คือคนเดียวกับที่ล็อกอินอยู่
+    if 'username' in session and session['username'] == username:
+        
+       # db = get_mongo_collection()
+        #user_data = None
+        #if db is not None:
+            #user_data = db.users.find_one({'username': username})
+        
+        # ป้องกันกรณีหาใน Mongo ไม่เจอ
+        #if not user_data:
+        user_data = {'username': username, 'info': 'ยังไม่มีข้อมูลเพิ่มเติมในฐานข้อมูล'}
 
-    user = db.users.find_one({'username': username})
-    
-    if not user:
-        return "User not found", 404
+        return render_template('profile.html', user=user_data, current_user=session['username'])
+    else:
+        return redirect(url_for('login'))
+# เพิ่ม Route สำหรับหน้าเริ่มเล่นเกม (test)
+@app.route('/test')
+def test():
+    if 'username' in session:
+        # เปิดหน้า test.html (เดี๋ยวเราค่อยสร้างไฟล์นี้)
+        return render_template('test.html', username=session['username'])
+    return redirect(url_for('login'))
 
-    return render_template('profile.html', user=user, current_user=session.get('username'))
+# เพิ่ม Route สำหรับหน้าคลังคำศัพท์ (mydict)
+@app.route('/mydict')
+def mydict():
+    if 'username' in session:
+        # เปิดหน้า mydict.html (เดี๋ยวเราค่อยสร้างไฟล์นี้)
+        return render_template('mydict.html', username=session['username'])
+    return redirect(url_for('login'))
 
 @app.route('/logout')
 def logout():
