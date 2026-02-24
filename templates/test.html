@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play - เกมทายศัพท์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- ตั้งค่าสีและฟอนต์ธีมเดิม --- */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --correct-gradient: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            --wrong-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            --bg-color: #f3f4f6;
+            --text-dark: #2d3748;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
+                              radial-gradient(circle at 90% 80%, rgba(252, 96, 118, 0.1) 0%, transparent 20%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow: hidden; /* กันหน้าจอเลื่อนเวลา Popup เด้ง */
+        }
+
+        /* ปุ่มย้อนกลับ */
+        .back-btn-fixed {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            background: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .back-btn-fixed:hover { transform: scale(1.1) rotate(-10deg); }
+
+        /* แถบคะแนนด้านบน */
+        .score-board {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 800;
+            color: #764ba2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-size: 1.2rem;
+        }
+
+        /* การ์ดคำถาม (Glassmorphism) */
+        .game-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 24px;
+            text-align: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .question-number {
+            font-size: 0.9rem;
+            color: #718096;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .vocab-word {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 30px 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ปุ่มตัวเลือก 4 ข้อ */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid transparent;
+            padding: 15px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        /* สีตอนตอบถูก / ผิด */
+        .option-btn.correct {
+            background: var(--correct-gradient);
+            color: white;
+            border-color: transparent;
+            transform: scale(1.05);
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-gradient);
+            color: white;
+            border-color: transparent;
+            animation: shake 0.4s;
+        }
+
+        /* --- Custom Popup (เวลาตอบผิด) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 300px;
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-title { font-size: 1.5rem; font-weight: 800; color: #ff4b2b; margin: 0 0 10px 0; }
+        .modal-answer { font-size: 1.2rem; font-weight: 600; color: #00b09b; margin-bottom: 20px; }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        
+        .modal-btn:hover { transform: scale(1.05); }
+        .btn-save { background: var(--primary-gradient); color: white; }
+        .btn-skip { background: #e2e8f0; color: var(--text-dark); }
+
+        /* Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+    </style>
+</head>
+<body>
+
+    <a href="home.html" class="back-btn-fixed">⬅️</a>
+
+    <div class="score-board">🔥 Score: <span id="score">0</span></div>
+
+    <div class="game-card">
+        <div class="question-number" id="q-number">Question 1 / 5</div>
+        <h1 class="vocab-word" id="word-display">Loading...</h1>
+
+        <div class="options-grid" id="options-container">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="wrongModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Oops! ผิดอ่ะ 🥺</h2>
+            <p>คำแปลที่ถูกต้องคือ:</p>
+            <div class="modal-answer" id="correct-answer-display">...</div>
+            <p style="font-size: 0.9rem; color: #718096;">อยากเก็บคำนี้ไว้ทบทวนไหม?</p>
+            
+            <button class="modal-btn btn-save" onclick="saveToDict()">💾 เก็บเข้า My Dict</button>
+            <button class="modal-btn btn-skip" onclick="nextQuestion()">➡️ ข้ามไปข้อต่อไป</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let correctAnswer = "";
+
+        const wordDisplay = document.getElementById('word-display');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score');
+        const wrongModal = document.getElementById('wrongModal');
+        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+
+        async function loadQuestion() {
+            const res = await fetch("/get_word");
+            const data = await res.json();
+
+            wordDisplay.innerText = data.word;
+            correctAnswer = data.answer;
+
+            optionsContainer.innerHTML = "";
+
+            data.options.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.innerText = opt;
+
+                btn.onclick = () => checkAnswer(btn, opt);
+
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btnElement, selectedText) {
+            const allButtons = document.querySelectorAll('.option-btn');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selectedText === correctAnswer) {
+                btnElement.classList.add('correct');
+                score += 10;
+                scoreDisplay.innerText = score;
+                setTimeout(loadQuestion, 1000);
+            } else {
+                btnElement.classList.add('wrong');
+                setTimeout(() => {
+                    correctAnswerDisplay.innerText = correctAnswer;
+                    wrongModal.classList.add('active');
+                }, 500);
+            }
+        }
+
+        function nextQuestion() {
+            wrongModal.classList.remove('active');
+            loadQuestion();
+        }
+
+        function saveToDict() {
+            alert("เดี๋ยวค่อยต่อ backend สำหรับ My Dict 😎");
+            nextQuestion();
+        }
+
+        // เริ่มเกม
+        loadQuestion();
+    </script>
+
+</body>
+</html>
