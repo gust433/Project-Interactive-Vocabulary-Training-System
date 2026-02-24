@@ -21,10 +21,9 @@ def get_mysql_connection():
 
 def get_mongo_collection():
     try:
-        uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/users')
-        client = MongoClient(uri)
-        return client.get_database(DB_NAME)
-
+        client = MongoClient("mongodb://localhost:27017/")
+        db = client["vocabdb"]
+        return db
     except Exception as e:
         print(f"Error connecting to MongoDB: {e}")
         return None
