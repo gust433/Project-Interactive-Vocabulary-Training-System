@@ -126,12 +126,12 @@
     <div class="container">
         <div class="header">
             <h1>Game Menu</h1>
-            <p>ยินดีต้อนรับ, <span class="highlight-name">{{ username }}</span>!</p>
+            <p>ยินดีต้อนรับ, <span class="highlight-name" id="usernameDisplay"></span>!</p>
         </div>
 
         <div class="menu-grid">
             
-            <a href="{{ url_for('profile', username=username) }}" class="menu-card profile">
+            <a href="profile.html" class="menu-card profile">
                 <div class="menu-icon">👤</div>
                 <div class="menu-text">
                     <h3>โปรไฟล์ (Profile)</h3>
@@ -139,7 +139,7 @@
                 </div>
             </a>
 
-            <a href="{{ url_for('test') }}" class="menu-card play">
+            <a href="test.html" class="menu-card play">
                 <div class="menu-icon">🎮</div>
                 <div class="menu-text">
                     <h3>เริ่มเล่นเกม (Play)</h3>
@@ -147,7 +147,7 @@
                 </div>
             </a>
 
-            <a href="{{ url_for('mydict') }}" class="menu-card dict">
+            <a href="mydict.html" class="menu-card dict">
                 <div class="menu-icon">📚</div>
                 <div class="menu-text">
                     <h3>คลังคำศัพท์ (My Dict)</h3>
@@ -157,8 +157,41 @@
 
         </div>
 
-        <a href="{{ url_for('logout') }}" class="logout-btn">🚪 ออกจากระบบ</a>
+        <a href="#" id="logoutBtn" class="logout-btn">🚪 ออกจากระบบ</a>
     </div>
+    <script>
+    // ทำงานทันทีเมื่อโหลดหน้าเว็บเสร็จ
+        document.addEventListener('DOMContentLoaded', () => {
+        // 1. ไปหาชื่อผู้ใช้จาก LocalStorage (ที่เราแอบเก็บไว้ตอน Login สำเร็จ)
+        const username = localStorage.getItem('username');
 
+        if (username) {
+            // 2. ถ้ามีชื่อผู้ใช้ (แปลว่าล็อกอินแล้ว) ให้เอาชื่อไปแสดงบนหน้าเว็บ
+            // ต้องเปลี่ยน {{ username }} ใน HTML เป็น <span id="usernameDisplay"></span> ก่อนนะครับ
+            const displayElement = document.getElementById('usernameDisplay');
+            if (displayElement) {
+                displayElement.innerText = username;
+            }
+        } else {
+            // 3. ถ้าไม่มีชื่อผู้ใช้ (แปลว่ายังไม่ล็อกอิน) ให้เด้งกลับไปหน้า login.html
+            alert('กรุณาเข้าสู่ระบบก่อนเข้าถึงหน้านี้');
+            window.location.href = 'login.html';
+        }
+        });
+    </script>
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', function(event) {
+            event.preventDefault(); // ป้องกันไม่ให้ลิงก์กระตุก
+
+            // ถามเพื่อความแน่ใจ (ใส่หรือไม่ใส่ก็ได้)
+            const confirmLogout = confirm('คุณต้องการออกจากระบบใช่หรือไม่?');
+        
+            if (confirmLogout) {
+                // ลบข้อมูลและเด้งไปหน้า Login
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 </body>
 </html>

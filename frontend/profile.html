@@ -121,13 +121,13 @@
 
     <div class="container">
         
-        <a href="home.html" class="back-btn">⬅️ กลับหน้าหลัก</a>
+        <a href="index.html" class="back-btn">⬅️ กลับหน้าหลัก</a>
 
         <div class="profile-card">
             
             <div class="avatar">👦🏻</div>
             
-            <h2 class="username">Player_01</h2>
+            <h2 class="username" id="profileUsername">Player_01</h2>
             <div class="role-text">สมาชิกเกมทายศัพท์</div>
 
             <div class="stats-grid">
@@ -146,6 +146,16 @@
             
         </div>
     </div>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('profileUsername').innerText = username;
+        } else {
+            alert('กรุณาเข้าสู่ระบบก่อนครับ');
+            window.location.href = 'login.html';
+        }
+    });
+</script>
 </body>
 </html>

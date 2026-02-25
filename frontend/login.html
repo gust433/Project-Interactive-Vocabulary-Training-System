@@ -119,7 +119,7 @@
         </form>
 
         <div class="register-link">
-            ยังไม่มีบัญชีใช่ไหม? <a href="register">สมัครสมาชิกที่นี่</a>
+            ยังไม่มีบัญชีใช่ไหม? <a href="register.html">สมัครสมาชิกที่นี่</a>
         </div>
     </div>
 
@@ -132,29 +132,31 @@
             const formData = new FormData(formElement);
 
             // 2. ส่งข้อมูลไปให้ Backend ตรวจสอบ
-            fetch('/login', {
+            fetch('http://localhost:5001/api/login', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
             })
-            .then(response => {
-                // 3. เช็คว่า Backend สั่ง Redirect ไหม (ถ้ารหัสถูก Python จะสั่งไปที่หน้า index)
-                if (response.redirected) {
-                    // พาผู้ใช้ย้ายหน้าเว็บไปยัง URL ที่ Python ส่งมา
-                    window.location.href = response.url; 
+            .then(response => response.json())
+            .then(data => {
+                // 3. เช็คสถานะที่ Backend ส่งกลับมา
+                if (data.status === 'success') {
+                    // 🎉 ล็อกอินสำเร็จ! 
+                    // เก็บชื่อผู้ใช้ลงใน LocalStorage ก่อน
+                    localStorage.setItem('username', data.username);
+                    
+                    // สั่งให้เบราว์เซอร์พาไปหน้าหลักด้วยตัวเอง
+                    window.location.href = 'index.html'; 
                 } else {
-                    // ถ้ารหัสผิด Python จะส่งข้อความ Error ธรรมดากลับมา
-                    return response.text();
-                }
-            })
-            .then(text => {
-                // 4. แสดงข้อความแจ้งเตือนถ้ารหัสผิด (เช่น "Invalid username or password.")
-                if (text) {
-                    alert(text);
+                    // ❌ ล็อกอินไม่สำเร็จ (รหัสผิด / ไม่มีชื่อนี้) แจ้งเตือนข้อความ
+                    alert(data.message); 
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ครับ');
+                alert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่ภายหลัง');
             });
         });
     </script>
