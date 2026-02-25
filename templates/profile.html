@@ -108,6 +108,7 @@
             font-size: 1.5rem;
             font-weight: bold;
             color: #333;
+            text-align: center;
         }
 
         /* ตกแต่งไอคอนในสถิติ */
@@ -121,25 +122,25 @@
 
     <div class="container">
         
-        <a href="home.html" class="back-btn">⬅️ กลับหน้าหลัก</a>
+        <a href="{{ url_for('index') }}" class="back-btn">⬅️ กลับหน้าหลัก</a>
 
         <div class="profile-card">
             
             <div class="avatar">👦🏻</div>
             
-            <h2 class="username">Player_01</h2>
-            <div class="role-text">สมาชิกเกมทายศัพท์</div>
+            <h2 class="username">{{ user.username }}</h2>
+            <div class="role-text">{{user.email}}</div>
 
             <div class="stats-grid">
                 
                 <div class="stat-box rank">
                     <span class="stat-label">Rank</span>
-                    <span class="stat-value">Master <span>🏆</span></span>
+                    <span class="stat-value">{{user.rank}}</span>
                 </div>
 
                 <div class="stat-box words">
                     <span class="stat-label">Total Words</span>
-                    <span class="stat-value">999 <span>📚</span></span>
+                    <span class="stat-value">{{user.score}}</span>
                 </div>
 
             </div>

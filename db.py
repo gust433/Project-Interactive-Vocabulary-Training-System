@@ -3,7 +3,7 @@ import mysql.connector
 from pymongo import MongoClient
 
 MONGO_URL = 'mongodb://@localhost:27017/'
-DB_NAME = os.getenv('MONGO_DB_NAME', 'users')
+DB_NAME = os.getenv('MONGO_DB_NAME', 'vocabdb')
 
 def get_mysql_connection():
     try:
@@ -21,7 +21,7 @@ def get_mysql_connection():
 
 def get_mongo_collection():
     try:
-        uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/users')
+        uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
         client = MongoClient(uri)
         return client.get_database(DB_NAME)
 

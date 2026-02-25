@@ -3,6 +3,7 @@ from db import get_mongo_collection, get_mysql_connection
 import mysql.connector
 import json
 import time
+import random
 
 app = Flask(__name__)
 db = get_mongo_collection()
@@ -117,6 +118,7 @@ def register():
 
     return render_template('register.html')
 
+
 @app.route('/profile/<username>')
 def profile(username):
     # เช็คว่าคนที่กดเข้ามาดู คือคนเดียวกับที่ล็อกอินอยู่
@@ -129,18 +131,63 @@ def profile(username):
         
         # ป้องกันกรณีหาใน Mongo ไม่เจอ
         #if not user_data:
-        user_data = {'username': username, 'info': 'ยังไม่มีข้อมูลเพิ่มเติมในฐานข้อมูล'}
-
-        return render_template('profile.html', user=user_data, current_user=session['username'])
+        conn = None
+        cursor = None
+        try:
+            conn = get_mysql_connection()
+            if not conn:
+                return "Could not connect to database", 500
+            cursor = conn.cursor(dictionary=True)
+            
+            # คำสั่ง SQL ดึงข้อมูลของผู้ใช้คนนี้จากฐานข้อมูล
+            cursor.execute("SELECT username, email, score, `rank` FROM users WHERE username = %s", (username,))
+            user_data = cursor.fetchone() # ดึงข้อมูลมา 1 แถว (เพราะ username ไม่ซ้ำกันอยู่แล้ว)
+            
+            # ถ้าเจอข้อมูลใน Database
+            if user_data:
+                # ส่งข้อมูล user_data ไปให้หน้า profile.html
+                return render_template('profile.html', user=user_data)
+            else:
+                return "ไม่พบข้อมูลผู้ใช้นี้", 404
+                
+        except mysql.connector.Error as err:
+            return str(err), 500
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
     else:
+        # ถ้ายังไม่ล็อกอิน ให้เตะกลับไปหน้า login
         return redirect(url_for('login'))
-# เพิ่ม Route สำหรับหน้าเริ่มเล่นเกม (test)
-@app.route('/test')
-def test():
-    if 'username' in session:
-        # เปิดหน้า test.html (เดี๋ยวเราค่อยสร้างไฟล์นี้)
-        return render_template('test.html', username=session['username'])
-    return redirect(url_for('login'))
+
+# 1. เปลี่ยนชื่อ Route นี้ เพื่อใช้ส่ง "ข้อมูล" อย่างเดียว
+@app.route("/get_word")
+def get_word():
+    collection = db["words"]
+    docs = list(collection.aggregate([{"$sample": {"size": 1}}]))
+    
+    if not docs:
+        return jsonify({"error": "No data"}), 500
+
+    question = docs[0]
+    correct_thai = question["thai"]
+    wrong_choices = list(collection.aggregate([
+        {"$match": {"eng": {"$ne": question["eng"]}}},
+        {"$sample": {"size": 3}}
+    ]))
+
+    options = [correct_thai] + [w["thai"] for w in wrong_choices]
+    random.shuffle(options)
+
+    return jsonify({
+        "word": question["eng"],
+        "options": options,
+        "answer": correct_thai
+    })
+
+# 2. เพิ่ม Route ชื่อ /test เพื่อใช้ "เปิดหน้าเว็บ"
+@app.route("/test")
+def test_page():
+    return render_template('test.html')
 
 # เพิ่ม Route สำหรับหน้าคลังคำศัพท์ (mydict)
 @app.route('/mydict')
