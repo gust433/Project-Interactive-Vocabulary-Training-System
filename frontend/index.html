@@ -167,7 +167,7 @@
 
         if (username) {
             // 2. ถ้ามีชื่อผู้ใช้ (แปลว่าล็อกอินแล้ว) ให้เอาชื่อไปแสดงบนหน้าเว็บ
-            // ต้องเปลี่ยน {{ username }} ใน HTML เป็น <span id="usernameDisplay"></span> ก่อนนะครับ
+            // ต้องเปลี่ยน {{ username }} ใน HTML เป็น <span id="usernameDisplay"></span>
             const displayElement = document.getElementById('usernameDisplay');
             if (displayElement) {
                 displayElement.innerText = username;

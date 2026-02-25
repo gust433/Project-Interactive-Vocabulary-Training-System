@@ -177,7 +177,8 @@
             if (data.status === 'success') {
                 // สำเร็จ -> แจ้งเตือนและพาไปหน้า Login
                 alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ 🎮');
-                window.location.href = 'login.html'; 
+                localStorage.setItem('username', jsonData.username);
+                window.location.href = 'index.html'; 
             } else {
                 // ไม่สำเร็จ (เช่น ชื่อซ้ำ, ฐานข้อมูลพัง) -> เอาข้อความจาก Backend มาแจ้งเตือน
                 alert(data.message); 
