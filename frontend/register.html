@@ -143,14 +143,14 @@
     </div>
 
     <script>
-    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
         event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
 
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
         const errorMsg = document.getElementById('passwordError');
 
-        // 1. เช็คว่ารหัสผ่าน 2 ช่องตรงกันหรือไม่
+        // 1. เช็คว่ารหัสผ่าน 2 ช่องตรงกันหรือไม่ 
         if (password !== confirmPassword) {
             errorMsg.style.display = 'block'; 
             return; // หยุดการทำงาน ไม่ส่งข้อมูลต่อ
@@ -158,33 +158,34 @@
             errorMsg.style.display = 'none'; 
         }
 
-        // 2. ดึงข้อมูลทั้งหมดจากฟอร์มเตรียมส่งให้ Python
+        // 2. ดึงข้อมูลทั้งหมดจากฟอร์มเตรียมส่ง
         const formElement = document.getElementById('registerForm');
         const formData = new FormData(formElement);
+        const jsonData = Object.fromEntries(formData);
 
-        // 3. ยิงข้อมูลไปที่ Endpoint /register ของคุณ
-        fetch('/register', {
+        // 3. ยิงข้อมูลไปที่ Endpoint ของ Backend (ต้องใส่ URL เต็ม)
+        fetch('http://localhost:5001/api/register', { 
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
         })
-        .then(response => {
-            // 4. เช็คว่า Backend สั่ง Redirect ไปหน้า index หรือไม่
-            if (response.redirected) {
-                // ถ้าย้ายหน้าแปลว่าสำเร็จ (ระบบ auto-login ให้แล้ว)
-                //alert('สมัครสมาชิกสำเร็จ! ยินดีต้อนรับเข้าสู่เกมครับ 🎮');
-                window.location.href = response.url; 
+        .then(response => response.json()) // 4. แปลงข้อมูลที่ Backend ส่งมาเป็น JSON เสมอ
+        .then(data => {
+            // 5. เช็ค status จาก JSON ที่เราเขียนไว้ใน Python
+            if (data.status === 'success') {
+                // สำเร็จ -> แจ้งเตือนและพาไปหน้า Login
+                alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ 🎮');
+                localStorage.setItem('username', jsonData.username);
+                window.location.href = 'index.html'; 
             } else {
-                // ถ้าไม่ย้ายหน้า แปลว่าติด Error (เช่น "Username already exists...") ให้ดึงข้อความมา
-                return response.text(); 
-            }
-        })
-        .then(text => {
-            if (text) {
-                // 5. แจ้งเตือนข้อความ Error ตามที่ Python ส่งมา
-                alert(text); 
+                // ไม่สำเร็จ (เช่น ชื่อซ้ำ, ฐานข้อมูลพัง) -> เอาข้อความจาก Backend มาแจ้งเตือน
+                alert(data.message); 
             }
         })
         .catch(error => {
+            // กรณี Backend ไม่เปิด หรือเน็ตหลุด
             console.error('Error:', error);
             alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
         });

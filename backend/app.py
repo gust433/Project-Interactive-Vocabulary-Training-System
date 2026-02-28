@@ -1,0 +1,318 @@
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from db import get_mongo_collection, get_mysql_connection
+import mysql.connector
+import random
+from bson.objectid import ObjectId
+import json
+
+app = Flask(__name__)
+CORS(app)
+db = get_mongo_collection()
+app.secret_key = 'your_secret_key'
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    username = request.form.get('username') or request.json.get('username')
+    password = request.form.get('password') or request.json.get('password')
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_mysql_connection()
+        if not conn:
+            return jsonify({"status": "error", "message": "Database connection failed"}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        user = cursor.fetchone()
+
+        if user:
+            # รหัสผ่านถูกต้อง ส่ง JSON กลับไปบอก Frontend
+            return jsonify({
+                "status": "success", 
+                "message": "Login successful",
+                "username": username
+            }), 200
+        else:
+            # รหัสผ่านผิด ส่ง JSON แจ้งเตือน
+            return jsonify({"status": "error", "message": "Invalid username or password"}), 401
+            
+    except mysql.connector.Error as err:
+        return jsonify({"status": "error", "message": str(err)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def init_databases():
+    # --- Initialize MySQL ---
+    conn = get_mysql_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    email varchar(100),
+                    score int,
+                    `rank` varchar(25),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            print("MySQL 'users' table initialized successfully.")
+        except mysql.connector.Error as err:
+            print(f"Error initializing MySQL table: {err}")
+        finally:
+            if 'cursor' in locals() and cursor: cursor.close()
+            if conn: conn.close()
+    else:
+        print("Warning: Could not connect to MySQL during initialization.")
+
+    # --- Initialize MongoDB ---
+    try:
+        # Create a unique index on the 'username' field in the 'users' collection
+        # This guarantees database-level enforcement of unique usernames
+        db.users.create_index("username", unique=True)
+        print("MongoDB unique index on 'username' initialized successfully.")
+    except Exception as e:
+        print(f"Warning: MongoDB init failed: {e}")
+
+def seed_vocabulary():
+    if db is not None:
+        collection = db["words"]
+        if collection.count_documents({}) == 0:
+            try:
+                with open('Oxford-3000.json', 'r', encoding='utf-8') as f:
+                    words_data = json.load(f)
+                    collection.insert_many(words_data)
+                print(f"✅ นำเข้าคำศัพท์สำเร็จ {len(words_data)} คำ!")
+            except FileNotFoundError:
+                print("Error: 'Oxford-3000.json' file not found.")
+            except Exception as e:
+                print(f"Error seeding vocabulary: {e}")
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    username = request.form.get('username') or (request.json and request.json.get('username'))
+    password = request.form.get('password') or (request.json and request.json.get('password'))
+    email = request.form.get('email') or (request.json and request.json.get('email'))
+    
+    # ดักจับกรณีที่ส่งข้อมูลมาไม่ครบ
+    if not username or not password or not email:
+        return jsonify({"status": "error", "message": "Please fill in all fields."}), 400
+        
+    conn = None
+    cursor = None
+    try:
+        conn = get_mysql_connection()
+        if not conn:
+            return jsonify({"status": "error", "message": "Could not connect to the database."}), 500
+            
+        cursor = conn.cursor(dictionary=True)
+        
+        # เช็คว่ามี username นี้ในระบบหรือยัง
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        if cursor.fetchone():
+            return jsonify({"status": "error", "message": "Username already exists. Please choose a different one."}), 409
+        
+        # บันทึกข้อมูลผู้ใช้ใหม่
+        cursor.execute("INSERT INTO users (username, password, email, score, `rank`) VALUES (%s, %s, %s, %s, %s)", 
+                       (username, password, email, 0, 'Bronze'))
+        conn.commit()
+
+        # (ถ้ามีการใช้ MongoDB ควบคู่กัน สามารถเพิ่มโค้ด insert_one ได้ที่นี่)
+
+        # ส่ง JSON บอกว่าสำเร็จ (ไม่ต้อง set session และไม่ต้อง redirect แล้ว)
+        return jsonify({"status": "success", "message": "Registration successful"}), 201
+        
+    except mysql.connector.Error as err:
+        return jsonify({"status": "error", "message": str(err)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+@app.route('/api/profile/<username>', methods=['GET'])
+def get_profile(username):
+    conn = None
+    cursor = None
+    try:
+        conn = get_mysql_connection()
+        if not conn:
+            return jsonify({"status": "error", "message": "Database connection failed"}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        # ดึงข้อมูลจาก MySQL (ไม่เอา Password มาแสดงเพื่อความปลอดภัย)
+        cursor.execute("SELECT username, email, score, `rank` FROM users WHERE username = %s", (username,))
+        user_data = cursor.fetchone()
+
+        if user_data:
+            # ถ้าเจอข้อมูล ส่งกลับไปเป็น JSON
+            return jsonify({
+                "status": "success",
+                "data": user_data
+            }), 200
+        else:
+            return jsonify({"status": "error", "message": "ไม่พบข้อมูลผู้ใช้"}), 404
+            
+    except mysql.connector.Error as err:
+        return jsonify({"status": "error", "message": str(err)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# 1. เปลี่ยนชื่อ Route นี้ เพื่อใช้ส่ง "ข้อมูล" อย่างเดียว
+@app.route("/api/get_word")
+def get_word():
+    collection = db["words"]
+    docs = list(collection.aggregate([{"$sample": {"size": 1}}]))
+    
+    if not docs:
+        return jsonify({"error": "No data"}), 500
+
+    question = docs[0]
+    correct_thai = question["thai"]
+    wrong_choices = list(collection.aggregate([
+        {"$match": {"eng": {"$ne": question["eng"]}}},
+        {"$sample": {"size": 3}}
+    ]))
+
+    options = [correct_thai] + [w["thai"] for w in wrong_choices]
+    random.shuffle(options)
+
+    return jsonify({
+        "word": question["eng"],
+        "options": options,
+        "answer": correct_thai
+    })
+
+# API: ดึงคำศัพท์ทั้งหมดของผู้ใช้นั้นๆ
+@app.route('/api/mydict/<username>', methods=['GET'])
+def get_my_dict(username):
+    try:
+        # ใช้/สร้าง Collection ชื่อ user_dict ใน MongoDB
+        collection = db["user_dict"] 
+        # ค้นหาคำศัพท์ทั้งหมดที่เป็นของ username นี้
+        words_cursor = collection.find({"username": username})
+        
+        my_words = []
+        for word in words_cursor:
+            my_words.append({
+                "id": str(word["_id"]), # ต้องแปลง ObjectId ของ Mongo ให้เป็น Text ก่อนส่ง
+                "vocab": word["vocab"],
+                "meaning": word["meaning"]
+            })
+        
+        return jsonify({"status": "success", "data": my_words}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# API: ลบคำศัพท์ออกจากคลัง
+@app.route('/api/mydict/<word_id>', methods=['DELETE'])
+def delete_my_word(word_id):
+    try:
+        collection = db["user_dict"]
+        # ค้นหาและลบข้อมูลด้วย _id ของ MongoDB
+        result = collection.delete_one({"_id": ObjectId(word_id)})
+        
+        if result.deleted_count > 0:
+            return jsonify({"status": "success", "message": "ลบคำศัพท์เรียบร้อย"}), 200
+        else:
+            return jsonify({"status": "error", "message": "ไม่พบคำศัพท์นี้"}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# API: บันทึกคำศัพท์ใหม่ (เตรียมไว้ให้หน้า test.html)
+@app.route('/api/save_word', methods=['POST'])
+def save_word():
+    data = request.json
+    username = data.get('username')
+    vocab = data.get('vocab')
+    meaning = data.get('meaning')
+    
+    if not username or not vocab or not meaning:
+        return jsonify({"status": "error", "message": "ข้อมูลไม่ครบถ้วน"}), 400
+        
+    try:
+        collection = db["user_dict"]
+        # เช็คว่าเคยเซฟคำนี้ไว้แล้วหรือยัง
+        existing = collection.find_one({"username": username, "vocab": vocab})
+        if existing:
+            return jsonify({"status": "error", "message": "คำศัพท์นี้อยู่ในคลังแล้ว"}), 400
+            
+        # บันทึกลง Mongo
+        collection.insert_one({
+            "username": username,
+            "vocab": vocab,
+            "meaning": meaning
+        })
+        return jsonify({"status": "success", "message": "บันทึกคำศัพท์เรียบร้อย"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+@app.route('/api/update_score', methods=['POST'])
+def update_score():
+    data = request.json
+    username = data.get('username')
+    added_score = data.get('score', 0) # คะแนนที่ได้จากการเล่นรอบนี้
+    
+    if not username:
+        return jsonify({"status": "error", "message": "ไม่พบชื่อผู้ใช้"}), 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # 1. ดึงคะแนนเดิมของผู้ใช้ออกมาก่อน
+        cursor.execute("SELECT score FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"status": "error", "message": "ไม่พบข้อมูลผู้ใช้ในระบบ"}), 404
+            
+        current_score = user['score'] if user['score'] else 0
+        new_total_score = current_score + added_score # เอาคะแนนเก่า + คะแนนใหม่
+        
+        # 2. คำนวณ Rank ใหม่ (คุณสามารถปรับเกณฑ์คะแนนตรงนี้ได้ตามใจชอบ)
+        new_rank = 'Bronze'
+        if new_total_score >= 750:
+            new_rank = 'Diamond 💎'
+        elif new_total_score >= 500:
+            new_rank = 'Platinum 🏆'
+        elif new_total_score >= 250:
+            new_rank = 'Gold 🥇'
+        elif new_total_score >= 100:
+            new_rank = 'Silver 🥈'
+
+        # 3. อัปเดตคะแนนและ Rank กลับลงไปในฐานข้อมูล MySQL
+        cursor.execute("""
+            UPDATE users 
+            SET score = %s, `rank` = %s 
+            WHERE username = %s
+        """, (new_total_score, new_rank, username))
+        conn.commit()
+
+        return jsonify({
+            "status": "success", 
+            "message": "อัปเดตคะแนนสำเร็จ",
+            "new_total_score": new_total_score,
+            "new_rank": new_rank
+        }), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"status": "error", "message": str(err)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+if __name__ == '__main__':
+    try:
+        init_databases()
+        seed_vocabulary()
+    except Exception as e:
+        print(f"Warning: DB init failed: {e}")
+
+    app.run(host='0.0.0.0', port=5001, debug=True)

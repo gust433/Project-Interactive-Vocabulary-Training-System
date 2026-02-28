@@ -199,7 +199,7 @@
 </head>
 <body>
 
-    <a href="{{ url_for('index') }}" class="back-btn-fixed">⬅️</a>
+    <a href="index.html" class="back-btn-fixed">⬅️</a>
 
     <div class="score-board">🔥 Score: <span id="score">0</span></div>
 
@@ -237,7 +237,8 @@
         async function loadQuestion() {
             if (count >= 10) {
                 alert(`🎮 จบเกม! คะแนนรวมของคุณคือ ${score} คะแนน`);
-                window.location.href = "{{ url_for('index') }}"; // กลับหน้าหลัก
+                sendScoreToBackend(score);
+                
                 return;
             }
             count++;
@@ -245,7 +246,7 @@
             if (qNumberElem) {
                 qNumberElem.innerText = `Question ${count} / 10`;
             }
-            const res = await fetch("/get_word");
+            const res = await fetch("http://127.0.0.1:5001/api/get_word");
             const data = await res.json();
 
             wordDisplay.innerText = data.word;
@@ -292,7 +293,44 @@
             alert("เดี๋ยวค่อยต่อ backend สำหรับ My Dict 😎");
             nextQuestion();
         }
+        async function sendScoreToBackend(finalScore) {
+            const username = localStorage.getItem('username');
+            
+            if (!username) {
+                alert("เกิดข้อผิดพลาด: ไม่พบชื่อผู้ใช้ กรุณาล็อกอินใหม่");
+                window.location.href = "login.html";
+                return;
+            }
 
+            try {
+                // ยิง API ไปที่ Backend เพื่ออัปเดตคะแนน
+                const response = await fetch("http://127.0.0.1:5001/api/update_score", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        score: finalScore
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    
+                    alert(`🎮 จบเกม!\nคุณได้คะแนนรอบนี้: +${finalScore}\n⭐ คะแนนรวมทั้งหมด: ${result.new_total_score}\n🏆 Rank ปัจจุบัน: ${result.new_rank}`);
+                } else {
+                    alert("เล่นจบแล้ว แต่บันทึกคะแนนไม่สำเร็จ: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error updating score:", error);
+                alert("เล่นจบแล้ว แต่ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อบันทึกคะแนนได้");
+            } finally {
+                
+                window.location.href = "index.html";
+            }
+        }
         // เริ่มเกม
         loadQuestion();
     </script>

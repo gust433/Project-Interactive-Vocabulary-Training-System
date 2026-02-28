@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์ - เกมทายศัพท์</title>
+    <style>
+        /* (ใส่ CSS เดิมของคุณไว้ตรงนี้ได้เลย ผมขอละไว้เพื่อให้โค้ดสั้นลงนะครับ) */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f8; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 400px; padding: 20px; box-sizing: border-box; }
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #7f8c8d; text-decoration: none; font-weight: bold; transition: color 0.3s; }
+        .back-btn:hover { color: #2c3e50; }
+        .profile-card { background-color: white; border-radius: 16px; padding: 30px 20px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .avatar { width: 100px; height: 100px; background-color: #e0f2f1; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 3.5rem; margin: 0 auto 15px auto; border: 4px solid #4CAF50; }
+        .username { margin: 0; font-size: 1.8rem; color: #2c3e50; }
+        .role-text { color: #95a5a6; font-size: 0.9rem; margin-top: 5px; margin-bottom: 25px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-box { background-color: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #eee; }
+        .stat-box.rank { border-bottom: 4px solid #FF9800; } 
+        .stat-box.words { border-bottom: 4px solid #2196F3; } 
+        .stat-label { display: block; font-size: 0.85rem; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { display: block; font-size: 1.5rem; font-weight: bold; color: #333; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <a href="index.html" class="back-btn">⬅️ กลับหน้าหลัก</a>
+
+        <div class="profile-card">
+            
+            <div class="avatar">👦🏻</div>
+            
+            <h2 class="username" id="displayUsername">Loading...</h2>
+            <div class="role-text" id="displayEmail">กำลังโหลดข้อมูล...</div>
+
+            <div class="stats-grid">
+                
+                <div class="stat-box rank">
+                    <span class="stat-label">Rank</span>
+                    <span class="stat-value" id="displayRank">-</span>
+                </div>
+
+                <div class="stat-box words">
+                    <span class="stat-label">scores</span>
+                    <span class="stat-value" id="displayScore">-</span>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. ดึงชื่อผู้ใช้จาก localStorage
+            const username = localStorage.getItem('username');
+            
+            // 2. เช็คว่าล็อกอินหรือยัง
+            if (!username) {
+                alert('กรุณาเข้าสู่ระบบก่อนครับ');
+                window.location.href = 'login.html';
+                return; 
+            }
+
+            fetch(`http://127.0.0.1:5001/api/profile/${username}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === "success") {
+                        // ถ้าสำเร็จ เอาข้อมูลมายัดใส่ตาม ID ที่ตั้งไว้ใน HTML
+                        document.getElementById('displayUsername').innerText = result.data.username;
+                        document.getElementById('displayEmail').innerText = result.data.email;
+                        document.getElementById('displayRank').innerText = result.data.rank;
+                        document.getElementById('displayScore').innerText = result.data.score;
+                    } else {
+                        // ถ้าไม่สำเร็จ (เช่น หาชื่อไม่เจอในฐานข้อมูล)
+                        alert("ไม่สามารถดึงข้อมูลโปรไฟล์ได้: " + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+                    alert("เชื่อมต่อกับเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบว่าเปิดรันไฟล์ app.py อยู่หรือไม่");
+                });
+        });
+    </script>
+</body>
+</html>

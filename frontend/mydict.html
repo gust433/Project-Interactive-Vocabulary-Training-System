@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +21,7 @@
             font-family: 'Poppins', 'Segoe UI', sans-serif;
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
-                              radial-gradient(circle at 90% 80%, rgba(252, 96, 118, 0.1) 0%, transparent 20%);
+                radial-gradient(circle at 90% 80%, rgba(252, 96, 118, 0.1) 0%, transparent 20%);
             margin: 0;
             display: flex;
             justify-content: center;
@@ -46,16 +47,20 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        .back-btn-fixed:hover { transform: scale(1.1) rotate(-10deg); color: #764ba2; }
+        .back-btn-fixed:hover {
+            transform: scale(1.1) rotate(-10deg);
+            color: #764ba2;
+        }
 
         /* กล่องหลัก */
         .dict-container {
             width: 100%;
-            max-width: 650px; /* ขยายกว้างขึ้นนิดนึงเพื่อรองรับปุ่มลบ */
+            max-width: 650px;
+            /* ขยายกว้างขึ้นนิดนึงเพื่อรองรับปุ่มลบ */
             padding: 30px;
             border-radius: 24px;
             background: var(--glass-bg);
@@ -89,7 +94,7 @@
             padding: 12px 20px;
             border-radius: 12px;
             border: 2px solid #e2e8f0;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             font-size: 1rem;
             font-family: inherit;
             color: var(--text-dark);
@@ -111,8 +116,14 @@
             border-radius: 12px;
         }
 
-        .dict-table-wrapper::-webkit-scrollbar { width: 6px; }
-        .dict-table-wrapper::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
+        .dict-table-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dict-table-wrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
 
         table {
             width: 100%;
@@ -147,11 +158,19 @@
             color: var(--text-dark);
         }
 
-        tbody tr { transition: background-color 0.2s; }
-        tbody tr:hover { background-color: #f0f4ff; }
+        tbody tr {
+            transition: background-color 0.2s;
+        }
 
-        .col-vocab { font-weight: 600; color: #4a5568; }
-        
+        tbody tr:hover {
+            background-color: #f0f4ff;
+        }
+
+        .col-vocab {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
         /* ป้าย Tag ชนิดคำ (Type) */
         .type-tag {
             display: inline-block;
@@ -160,14 +179,28 @@
             font-size: 0.75rem;
             font-weight: 600;
         }
-        .type-n { background: #e6fffa; color: #319795; } 
-        .type-v { background: #ebf8ff; color: #3182ce; } 
-        .type-adj { background: #fff5f5; color: #e53e3e; } 
+
+        .type-n {
+            background: #e6fffa;
+            color: #319795;
+        }
+
+        .type-v {
+            background: #ebf8ff;
+            color: #3182ce;
+        }
+
+        .type-adj {
+            background: #fff5f5;
+            color: #e53e3e;
+        }
 
         /* --- ตกแต่งปุ่มลบ (Delete Button) --- */
         .btn-delete {
-            background-color: #fee2e2; /* สีแดงอ่อนๆ */
-            color: #ef4444; /* สีแดงเข้ม */
+            background-color: #fee2e2;
+            /* สีแดงอ่อนๆ */
+            color: #ef4444;
+            /* สีแดงเข้ม */
             border: none;
             padding: 6px 10px;
             border-radius: 8px;
@@ -181,14 +214,15 @@
         .btn-delete:hover {
             background-color: #ef4444;
             color: white;
-            transform: scale(1.05); /* ชี้แล้วเด้งขยาย */
+            transform: scale(1.05);
+            /* ชี้แล้วเด้งขยาย */
         }
-
     </style>
 </head>
+
 <body>
 
-    <a href="{{ url_for('index') }}" class="back-btn-fixed">⬅️</a>
+    <a href="index.html" class="back-btn-fixed">⬅️</a>
 
     <div class="dict-container">
         <h1 class="header-title">My Dict 📚</h1>
@@ -204,94 +238,106 @@
                         <th width="30%">Vocab</th>
                         <th width="15%">Type</th>
                         <th width="30%">Meaning</th>
-                        <th width="15%" style="text-align: center;">Action</th> </tr>
+                        <th width="15%" style="text-align: center;">Action</th>
+                    </tr>
                 </thead>
                 <tbody id="dict-body">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // 1. จำลองข้อมูลคำศัพท์
-        let myWords = [
-            { id: 1, vocab: "Ephemeral", type: "adj", meaning: "ชั่วคราว" },
-            { id: 2, vocab: "Ubiquitous", type: "adj", meaning: "มีอยู่ทุกหนทุกแห่ง" },
-            { id: 3, vocab: "Analyze", type: "v", meaning: "วิเคราะห์" },
-            { id: 4, vocab: "Database", type: "n", meaning: "ฐานข้อมูล" },
-            { id: 5, vocab: "Meticulous", type: "adj", meaning: "พิถีพิถัน" },
-            { id: 6, vocab: "Implement", type: "v", meaning: "นำไปปฏิบัติ / ติดตั้ง" },
-            { id: 7, vocab: "Circuit", type: "n", meaning: "วงจรไฟฟ้า" }
-        ];
-
-        const tableBody = document.getElementById('dict-body');
+        // ตัวแปรเก็บข้อมูลคำศัพท์ที่ดึงมาจาก Database
+        let myWords = [];
+        const dictBody = document.getElementById('dictBody');
         const searchInput = document.getElementById('searchInput');
 
-        // 2. ฟังก์ชันสำหรับสร้างแถวในตาราง
-        function renderTable(data) {
-            tableBody.innerHTML = ""; 
-
-            if (data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a0aec0; padding: 20px;">ไม่พบคำศัพท์ที่ค้นหา 🥺</td></tr>`;
+        // 1. ทำงานเมื่อเปิดหน้าเว็บ
+        document.addEventListener('DOMContentLoaded', () => {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                alert('กรุณาเข้าสู่ระบบก่อนครับ');
+                window.location.href = 'login.html';
                 return;
             }
 
-            data.forEach((item, index) => {
-                let typeClass = "type-n";
-                if (item.type === "v") typeClass = "type-v";
-                if (item.type === "adj") typeClass = "type-adj";
+            // ดึงข้อมูลคำศัพท์จาก Backend
+            fetch(`http://localhost:5001/api/mydict/${username}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        myWords = data.data; // เอาข้อมูลของจริงมาใส่ในตัวแปร
+                        renderTable(myWords); // สั่งแสดงผลบนตาราง
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error fetching dict:', error));
+        });
 
-                const row = document.createElement('tr');
-                
-                // --- เพิ่มปุ่มลบ (btn-delete) เข้าไปใน <td> สุดท้าย ---
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td class="col-vocab">${item.vocab}</td>
-                    <td><span class="type-tag ${typeClass}">${item.type}.</span></td>
-                    <td>${item.meaning}</td>
-                    <td style="text-align: center;">
-                        <button class="btn-delete" onclick="deleteWord(${item.id}, '${item.vocab}')">🗑️ ลบ</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
+        // 2. ฟังก์ชันวาดตาราง (ใช้โค้ดเดิมของคุณได้เลย)
+        function renderTable(dataArray) {
+            dictBody.innerHTML = '';
+            if (dataArray.length === 0) {
+                dictBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px;">ไม่พบคำศัพท์ในคลัง</td></tr>`;
+                return;
+            }
+            dataArray.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td class="vocab-text">${item.vocab}</td>
+                <td>${item.meaning}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteWord('${item.id}', '${item.vocab}')">🗑️ ลบ</button>
+                </td>
+            `;
+                dictBody.appendChild(tr);
             });
         }
 
-        // 3. ฟังก์ชันระบบค้นหา
-        searchInput.addEventListener('keyup', function(e) {
+        // 3. ฟังก์ชันค้นหา (โค้ดเดิม)
+        searchInput.addEventListener('keyup', function (e) {
             filterAndRender();
         });
 
-        // ฟังก์ชันช่วยกรองข้อมูล (แยกออกมาเพื่อให้ตอนลบเสร็จเรียกใช้ซ้ำได้)
         function filterAndRender() {
             const searchString = searchInput.value.toLowerCase();
             const filteredWords = myWords.filter(item => {
-                return item.vocab.toLowerCase().includes(searchString) || 
-                       item.meaning.includes(searchString);
+                return item.vocab.toLowerCase().includes(searchString) ||
+                    item.meaning.includes(searchString);
             });
             renderTable(filteredWords);
         }
 
-        // 4. --- ฟังก์ชันลบคำศัพท์ (ตัวใหม่ที่เพิ่มเข้ามา) ---
+        // 4. ฟังก์ชันลบคำศัพท์ (แก้ไขให้ยิง API)
         function deleteWord(wordId, wordText) {
-            // โชว์หน้าต่างถามเพื่อความชัวร์ (confirm)
-            const isConfirmed = confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบคำว่า "${wordText}" ออกจากคลังคำศัพท์?`);
-            
+            const isConfirmed = confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบคำว่า "${wordText}" ออกจากคลัง?`);
+
             if (isConfirmed) {
-                // หาตำแหน่งของคำศัพท์นั้นใน Array แล้วลบออก (splice)
-                const index = myWords.findIndex(item => item.id === wordId);
-                if (index !== -1) {
-                    myWords.splice(index, 1); // คำสั่งลบข้อมูลออกจาก Array 1 ตัว
-                    
-                    // อัปเดตตารางใหม่หลังจากลบเสร็จ
-                    filterAndRender(); 
-                }
+                // ยิง API แบบ DELETE ไปหา Backend
+                fetch(`http://localhost:5001/api/mydict/${wordId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // ลบสำเร็จ ให้ลบออกจาก Array ตัวแปรฝั่งหน้าจอด้วย
+                            const index = myWords.findIndex(item => item.id === wordId);
+                            if (index !== -1) {
+                                myWords.splice(index, 1);
+                                filterAndRender(); // อัปเดตตารางให้ข้อความหายไป
+                            }
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error deleting word:', error));
             }
         }
-
-        // 5. แสดงข้อมูลทั้งหมดตอนเปิดหน้าเว็บครั้งแรก
-        renderTable(myWords);
     </script>
 
 </body>
+
 </html>
