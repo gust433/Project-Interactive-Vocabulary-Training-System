@@ -23,4 +23,4 @@
         # 2
         เข้าไปใน http://localhost:8000/
 
-# เหลือแก้ mydict, นับ score ลง Profile, rank, email ไม่ unique, frontend สวยๆ
+# เหลือแก้ frontend สวยๆ
