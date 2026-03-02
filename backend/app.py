@@ -210,7 +210,8 @@ def get_my_dict(username):
             my_words.append({
                 "id": str(word["_id"]), # ต้องแปลง ObjectId ของ Mongo ให้เป็น Text ก่อนส่ง
                 "vocab": word["vocab"],
-                "meaning": word["meaning"]
+                "meaning": word["meaning"],
+                "note": word.get("note", " ") # ถ้าไม่มี note ให้ส่งเป็น string ว่าง
             })
         
         return jsonify({"status": "success", "data": my_words}), 200
@@ -254,12 +255,34 @@ def save_word():
         collection.insert_one({
             "username": username,
             "vocab": vocab,
-            "meaning": meaning
+            "meaning": meaning,
+            "note": "" # เพิ่มฟิลด์ note เผื่อไว้ให้ผู้ใช้จดบันทึกเพิ่มเติมในอนาคต
         })
         return jsonify({"status": "success", "message": "บันทึกคำศัพท์เรียบร้อย"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
+@app.route('/api/save_note/<word_id>', methods=['POST'])
+def update_note(word_id):
+    data = request.json
+    note = data.get('note', '') # อนุญาตให้ลบโน้ตจนว่างเปล่าได้
+    
+    try:
+        collection = db["user_dict"]
+        # อัปเดตข้อมูล note โดยหาจาก _id ของคำศัพท์นั้นๆ
+        result = collection.update_one(
+            {"_id": ObjectId(word_id)},
+            {"$set": {"note": note}}
+        )
+        
+        if result.matched_count > 0:
+            return jsonify({"status": "success", "message": "บันทึกโน้ตเรียบร้อย"}), 200
+        else:
+            return jsonify({"status": "error", "message": "ไม่พบคำศัพท์นี้ในระบบ"}), 404
+            
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/update_score', methods=['POST'])
 def update_score():
     data = request.json

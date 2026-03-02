@@ -60,7 +60,6 @@
         .dict-container {
             width: 100%;
             max-width: 650px;
-            /* ขยายกว้างขึ้นนิดนึงเพื่อรองรับปุ่มลบ */
             padding: 30px;
             border-radius: 24px;
             background: var(--glass-bg);
@@ -171,36 +170,10 @@
             color: #4a5568;
         }
 
-        /* ป้าย Tag ชนิดคำ (Type) */
-        .type-tag {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .type-n {
-            background: #e6fffa;
-            color: #319795;
-        }
-
-        .type-v {
-            background: #ebf8ff;
-            color: #3182ce;
-        }
-
-        .type-adj {
-            background: #fff5f5;
-            color: #e53e3e;
-        }
-
         /* --- ตกแต่งปุ่มลบ (Delete Button) --- */
         .btn-delete {
             background-color: #fee2e2;
-            /* สีแดงอ่อนๆ */
             color: #ef4444;
-            /* สีแดงเข้ม */
             border: none;
             padding: 6px 10px;
             border-radius: 8px;
@@ -215,7 +188,37 @@
             background-color: #ef4444;
             color: white;
             transform: scale(1.05);
-            /* ชี้แล้วเด้งขยาย */
+        }
+
+        /* --- ตกแต่งช่อง Note ให้ดูคลิกเพื่อแก้ได้ --- */
+        .note-cell {
+            cursor: text;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px dashed transparent;
+            transition: all 0.2s;
+            min-height: 24px;
+        }
+
+        .note-cell:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e0;
+        }
+
+        .note-cell:focus {
+            outline: none;
+            background-color: white;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        /* ข้อความจางๆ กรณีที่ Note ว่างเปล่า */
+        .note-cell:empty:before {
+            content: attr(data-placeholder);
+            color: #a0aec0;
+            font-style: italic;
+            pointer-events: none;
+            display: block;
         }
     </style>
 </head>
@@ -224,27 +227,28 @@
 
     <a href="index.html" class="back-btn-fixed">⬅️</a>
 
-        <div class="dict-container">
-            <h1 class="header-title">My Dict 📚</h1>
-            <p class="header-subtitle">คลังคำศัพท์ที่คุณสะสมไว้ทั้งหมด</p>
+    <div class="dict-container">
+        <h1 class="header-title">My Dict 📚</h1>
+        <p class="header-subtitle">คลังคำศัพท์ที่คุณสะสมไว้ทั้งหมด</p>
 
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 พิมพ์เพื่อค้นหาคำศัพท์ หรือ ความหมาย...">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 พิมพ์เพื่อค้นหาคำศัพท์ หรือ ความหมาย...">
 
-            <div class="dict-table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th width="10%">No.</th>
-                            <th width="30%">Vocab</th>        
-                            <th width="35%">Meaning</th>
-                            <th width="25%" style="text-align: center;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dictBody">
-                    </tbody>
-                </table>
-            </div>
+        <div class="dict-table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="10%">No.</th>
+                        <th width="25%">Vocab</th>        
+                        <th width="25%">Meaning</th>
+                        <th width="15%" style="text-align: center;">Action</th>
+                        <th width="25%" style="text-align: center;">Note</th>
+                    </tr>
+                </thead>
+                <tbody id="dictBody">
+                </tbody>
+            </table>
         </div>
+    </div>
 
     <script>
         // ตัวแปรเก็บข้อมูลคำศัพท์ที่ดึงมาจาก Database
@@ -279,24 +283,30 @@
         function renderTable(dataArray) {
             dictBody.innerHTML = '';
             if (dataArray.length === 0) {
-                dictBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px;">ไม่พบคำศัพท์ในคลัง</td></tr>`;
+                dictBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">ไม่พบคำศัพท์ในคลัง</td></tr>`;
                 return;
             }
+            
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td class="vocab-text">${item.vocab}</td>
+                <td class="col-vocab">${item.vocab}</td>
                 <td>${item.meaning}</td>
-                <td>
-                    <button class="delete-btn" onclick="deleteWord('${item.id}', '${item.vocab}')">🗑️ ลบ</button>
+                <td style="text-align: center;">
+                    <button class="btn-delete" onclick="deleteWord('${item.id}', '${item.vocab}')">🗑️ ลบ</button>
                 </td>
+                <td class="note-cell" 
+                    contenteditable="true" 
+                    data-placeholder="คลิกเพื่อพิมพ์โน้ต..." 
+                    data-original="${item.note || ''}" 
+                    onblur="updateNote('${item.id}', this)">${item.note || ''}</td>
             `;
                 dictBody.appendChild(tr);
             });
         }
 
-        // 3. ฟังก์ชันค้นหา (โค้ดเดิม)
+        // 3. ฟังก์ชันค้นหา
         searchInput.addEventListener('keyup', function (e) {
             filterAndRender();
         });
@@ -310,29 +320,66 @@
             renderTable(filteredWords);
         }
 
-        // 4. ฟังก์ชันลบคำศัพท์ (แก้ไขให้ยิง API)
+        // 4. ฟังก์ชันลบคำศัพท์
         function deleteWord(wordId, wordText) {
             const isConfirmed = confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบคำว่า "${wordText}" ออกจากคลัง?`);
 
             if (isConfirmed) {
-                // ยิง API แบบ DELETE ไปหา Backend
                 fetch(`http://localhost:5001/api/mydict/${wordId}`, {
                     method: 'DELETE'
                 })
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            // ลบสำเร็จ ให้ลบออกจาก Array ตัวแปรฝั่งหน้าจอด้วย
-                            const index = myWords.findIndex(item => item.id === wordId);
+                            const index = myWords.findIndex(item => item.id == wordId);
                             if (index !== -1) {
                                 myWords.splice(index, 1);
-                                filterAndRender(); // อัปเดตตารางให้ข้อความหายไป
+                                filterAndRender(); 
                             }
                         } else {
                             alert(data.message);
                         }
                     })
                     .catch(error => console.error('Error deleting word:', error));
+            }
+        }
+
+        // 5. ฟังก์ชันอัปเดต Note เมื่อคลิกที่อื่น (onblur)
+        function updateNote(wordId, element) {
+            const newNote = element.innerText.trim();
+            const originalNote = element.getAttribute('data-original');
+
+            // อัปเดตก็ต่อเมื่อข้อความมีการเปลี่ยนแปลงจริงๆ
+            if (newNote !== originalNote) {
+                
+                // ยิง API ไปอัปเดต Note ที่ Backend
+                fetch(`http://localhost:5001/api/save_note/${wordId}`, {
+                    method: 'POST', // หรือ POST ตามที่ Backend คุณเขียนไว้
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ note: newNote })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // เปลี่ยนค่า original ให้เป็นค่าใหม่
+                        element.setAttribute('data-original', newNote);
+                        
+                        // อัปเดตใน Array หลักด้วย เผื่อเวลา Search จะได้ไม่หาย
+                        const wordObj = myWords.find(item => item.id == wordId);
+                        if(wordObj) wordObj.note = newNote;
+                        
+                    } else {
+                        alert('ไม่สามารถบันทึกโน้ตได้: ' + data.message);
+                        element.innerText = originalNote; // คืนค่ากลับถ้าเซฟพัง
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating note:', error);
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                    element.innerText = originalNote; // คืนค่ากลับถ้าเซฟพัง
+                });
             }
         }
     </script>
