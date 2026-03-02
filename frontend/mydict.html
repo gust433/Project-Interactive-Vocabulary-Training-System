@@ -224,28 +224,27 @@
 
     <a href="index.html" class="back-btn-fixed">⬅️</a>
 
-    <div class="dict-container">
-        <h1 class="header-title">My Dict 📚</h1>
-        <p class="header-subtitle">คลังคำศัพท์ที่คุณสะสมไว้ทั้งหมด</p>
+        <div class="dict-container">
+            <h1 class="header-title">My Dict 📚</h1>
+            <p class="header-subtitle">คลังคำศัพท์ที่คุณสะสมไว้ทั้งหมด</p>
 
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 พิมพ์เพื่อค้นหาคำศัพท์ หรือ ความหมาย...">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 พิมพ์เพื่อค้นหาคำศัพท์ หรือ ความหมาย...">
 
-        <div class="dict-table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th width="10%">No.</th>
-                        <th width="30%">Vocab</th>
-                        <th width="15%">Type</th>
-                        <th width="30%">Meaning</th>
-                        <th width="15%" style="text-align: center;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="dict-body">
-                </tbody>
-            </table>
+            <div class="dict-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="10%">No.</th>
+                            <th width="30%">Vocab</th>        
+                            <th width="35%">Meaning</th>
+                            <th width="25%" style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dictBody">
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
     <script>
         // ตัวแปรเก็บข้อมูลคำศัพท์ที่ดึงมาจาก Database
@@ -276,7 +275,7 @@
                 .catch(error => console.error('Error fetching dict:', error));
         });
 
-        // 2. ฟังก์ชันวาดตาราง (ใช้โค้ดเดิมของคุณได้เลย)
+        // 2. ฟังก์ชันวาดตาราง
         function renderTable(dataArray) {
             dictBody.innerHTML = '';
             if (dataArray.length === 0) {

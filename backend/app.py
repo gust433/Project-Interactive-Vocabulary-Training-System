@@ -5,6 +5,7 @@ import mysql.connector
 import random
 from bson.objectid import ObjectId
 import json
+from datetime import date
 
 app = Flask(__name__)
 CORS(app)
@@ -51,18 +52,25 @@ def init_databases():
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    username VARCHAR(100) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
-                    email varchar(100),
-                    score int,
-                    `rank` varchar(25),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(100),
+                score INT DEFAULT 0,
+                `rank` VARCHAR(25) DEFAULT 'Bronze',
+                last_play_date DATE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
             """)
+
+            try:
+                cursor.execute("ALTER TABLE users ADD COLUMN last_play_date DATE")
+            except :
+                pass
             conn.commit()
-            print("MySQL 'users' table initialized successfully.")
+            print("MySQL table 'users' initialized successfully.")
+            
         except mysql.connector.Error as err:
             print(f"Error initializing MySQL table: {err}")
         finally:
@@ -163,7 +171,7 @@ def get_profile(username):
         if cursor: cursor.close()
         if conn: conn.close()
 
-# 1. เปลี่ยนชื่อ Route นี้ เพื่อใช้ส่ง "ข้อมูล" อย่างเดียว
+# 1. เพื่อใช้ส่ง "ข้อมูล" อย่างเดียว
 @app.route("/api/get_word")
 def get_word():
     collection = db["words"]
@@ -251,6 +259,7 @@ def save_word():
         return jsonify({"status": "success", "message": "บันทึกคำศัพท์เรียบร้อย"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
 @app.route('/api/update_score', methods=['POST'])
 def update_score():
     data = request.json
@@ -266,12 +275,21 @@ def update_score():
         conn = get_mysql_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # 1. ดึงคะแนนเดิมของผู้ใช้ออกมาก่อน
-        cursor.execute("SELECT score FROM users WHERE username = %s", (username,))
+        # ดึงข้อมูลผู้ใช้
+        cursor.execute("SELECT score, last_play_date FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
-        
+
         if not user:
-            return jsonify({"status": "error", "message": "ไม่พบข้อมูลผู้ใช้ในระบบ"}), 404
+            return jsonify({"status": "error", "message": "ไม่พบผู้ใช้"}), 404
+
+        today = date.today()
+
+        # 🔴 ถ้าเล่นแล้ววันนี้ ห้ามเล่นซ้ำ
+        if user['last_play_date'] and user['last_play_date'] == today:
+            return jsonify({
+                "status": "error",
+                "message": "วันนี้คุณเล่นไปแล้ว! พรุ่งนี้ค่อยมาใหม่นะ 😊"
+            }), 403
             
         current_score = user['score'] if user['score'] else 0
         new_total_score = current_score + added_score # เอาคะแนนเก่า + คะแนนใหม่
@@ -289,10 +307,11 @@ def update_score():
 
         # 3. อัปเดตคะแนนและ Rank กลับลงไปในฐานข้อมูล MySQL
         cursor.execute("""
-            UPDATE users 
-            SET score = %s, `rank` = %s 
+            UPDATE users
+            SET score = %s, `rank` = %s, last_play_date = %s
             WHERE username = %s
-        """, (new_total_score, new_rank, username))
+        """, (new_total_score, new_rank, today, username))
+
         conn.commit()
 
         return jsonify({
