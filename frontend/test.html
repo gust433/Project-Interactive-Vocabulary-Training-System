@@ -30,30 +30,21 @@
             min-height: 100vh;
             color: var(--text-dark);
             overflow: hidden;
-            /* กันหน้าจอเลื่อนเวลา Popup เด้ง */
         }
 
-        /* ปุ่มย้อนกลับ */
-        .back-btn-fixed {
+        /* ปุ่มย้อนกลับ (ใช้เป็นแถบเวลาแทนในหน้านี้) */
+        .timer-board {
             position: absolute;
             top: 20px;
             left: 20px;
-            text-decoration: none;
-            font-size: 1.5rem;
-            color: var(--text-dark);
             background: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 800;
+            color: #ff416c;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            font-size: 1.2rem;
             transition: transform 0.3s;
-        }
-
-        .back-btn-fixed:hover {
-            transform: scale(1.1) rotate(-10deg);
         }
 
         /* แถบคะแนนด้านบน */
@@ -70,7 +61,7 @@
             font-size: 1.2rem;
         }
 
-        /* การ์ดคำถาม (Glassmorphism) */
+        /* การ์ดคำถาม */
         .game-card {
             width: 100%;
             max-width: 400px;
@@ -144,7 +135,7 @@
             animation: shake 0.4s;
         }
 
-        /* --- Custom Popup (เวลาตอบผิด) --- */
+        /* --- Custom Popup --- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -225,7 +216,6 @@
                 opacity: 0;
                 transform: translateY(40px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -233,24 +223,16 @@
         }
 
         @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-10px);
-            }
-
-            75% {
-                transform: translateX(10px);
-            }
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
     </style>
 </head>
 
 <body>
+
+    <div class="timer-board">⏱️ Time: <span id="time">6</span>s</div>
 
     <div class="score-board">🔥 Score: <span id="score">0</span></div>
 
@@ -264,7 +246,7 @@
 
     <div class="modal-overlay" id="wrongModal">
         <div class="modal-content">
-            <h2 class="modal-title">Oops! ผิดอ่ะ 🥺</h2>
+            <h2 class="modal-title" id="modal-title-text">Oops! ผิดอ่ะ 🥺</h2>
             <p>คำแปลที่ถูกต้องคือ:</p>
             <div class="modal-answer" id="correct-answer-display">...</div>
             <p style="font-size: 0.9rem; color: #718096;">อยากเก็บคำนี้ไว้ทบทวนไหม?</p>
@@ -279,45 +261,90 @@
         let count = 0;
         let correctAnswer = "";
 
+        // ตัวแปรสำหรับจับเวลา
+        let timeLeft = 6;
+        let timerInterval;
+
         const wordDisplay = document.getElementById('word-display');
         const optionsContainer = document.getElementById('options-container');
         const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
         const wrongModal = document.getElementById('wrongModal');
         const correctAnswerDisplay = document.getElementById('correct-answer-display');
+        const modalTitleText = document.getElementById('modal-title-text');
+
+        // ฟังก์ชันเริ่มจับเวลา
+        function startTimer() {
+            timeLeft = 6;
+            timeDisplay.innerText = timeLeft;
+            clearInterval(timerInterval); // เคลียร์เวลาเก่าทิ้งก่อนเริ่มใหม่
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeDisplay.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout(); // เรียกฟังก์ชันเมื่อหมดเวลา
+                }
+            }, 1000);
+        }
+
+        // ฟังก์ชันเมื่อหมดเวลา 6 วิ
+        function handleTimeout() {
+            const allButtons = document.querySelectorAll('.option-btn');
+            allButtons.forEach(b => b.style.pointerEvents = 'none'); // ล็อกปุ่ม
+            
+            modalTitleText.innerText = "หมดเวลา! ⏱️"; // เปลี่ยนข้อความใน Popup
+            correctAnswerDisplay.innerText = correctAnswer;
+            wrongModal.classList.add('active');
+        }
 
         async function loadQuestion() {
             if (count >= 10) {
+                clearInterval(timerInterval); // หยุดเวลาตอนจบเกม
                 alert(`🎮 จบเกม! คะแนนรวมของคุณคือ ${score} คะแนน`);
                 sendScoreToBackend(score);
-
                 return;
             }
             count++;
+            
             const qNumberElem = document.getElementById('q-number');
             if (qNumberElem) {
                 qNumberElem.innerText = `Question ${count} / 10`;
             }
-            const res = await fetch("http://127.0.0.1:5001/api/get_word");
-            const data = await res.json();
 
-            wordDisplay.innerText = data.word;
-            correctAnswer = data.answer;
+            try {
+                const res = await fetch("http://127.0.0.1:5001/api/get_word");
+                const data = await res.json();
 
-            optionsContainer.innerHTML = "";
+                wordDisplay.innerText = data.word;
+                correctAnswer = data.answer;
 
-            data.options.forEach(opt => {
-                const btn = document.createElement("button");
-                btn.className = "option-btn";
-                btn.innerText = opt;
+                optionsContainer.innerHTML = "";
 
-                btn.onclick = () => checkAnswer(btn, opt);
+                data.options.forEach(opt => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    btn.innerText = opt;
 
-                optionsContainer.appendChild(btn);
-            });
+                    btn.onclick = () => checkAnswer(btn, opt);
 
+                    optionsContainer.appendChild(btn);
+                });
+
+                // เริ่มจับเวลาเมื่อโหลดตัวเลือกเสร็จ
+                startTimer();
+                
+            } catch (error) {
+                console.error("Error loading question:", error);
+                wordDisplay.innerText = "Error loading...";
+            }
         }
 
         function checkAnswer(btnElement, selectedText) {
+            clearInterval(timerInterval); // หยุดเวลาเมื่อมีการคลิกตอบ
+
             const allButtons = document.querySelectorAll('.option-btn');
             allButtons.forEach(b => b.style.pointerEvents = 'none');
 
@@ -329,6 +356,7 @@
             } else {
                 btnElement.classList.add('wrong');
                 setTimeout(() => {
+                    modalTitleText.innerText = "Oops! ผิดอ่ะ 🥺"; // เซตข้อความกลับเป็นตอบผิด
                     correctAnswerDisplay.innerText = correctAnswer;
                     wrongModal.classList.add('active');
                 }, 500);
@@ -375,8 +403,9 @@
                 alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
             }
 
-            nextQuestion(); // เรียกหลังจากเสร็จจริง ๆ
+            nextQuestion();
         }
+
         async function sendScoreToBackend(finalScore) {
             const username = localStorage.getItem('username');
 
@@ -387,7 +416,6 @@
             }
 
             try {
-                // ยิง API ไปที่ Backend เพื่ออัปเดตคะแนน
                 const response = await fetch("http://127.0.0.1:5001/api/update_score", {
                     method: "POST",
                     headers: {
@@ -402,7 +430,6 @@
                 const result = await response.json();
 
                 if (result.status === "success") {
-
                     alert(`🎮 จบเกม!\nคุณได้คะแนนรอบนี้: +${finalScore}\n⭐ คะแนนรวมทั้งหมด: ${result.new_total_score}\n🏆 Rank ปัจจุบัน: ${result.new_rank}`);
                 } else {
                     alert("เล่นจบแล้ว แต่บันทึกคะแนนไม่สำเร็จ: " + result.message);
@@ -411,10 +438,10 @@
                 console.error("Error updating score:", error);
                 alert("เล่นจบแล้ว แต่ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อบันทึกคะแนนได้");
             } finally {
-
                 window.location.href = "index.html";
             }
         }
+        
         // เริ่มเกม
         loadQuestion();
     </script>
