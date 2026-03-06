@@ -1,197 +1,360 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>หน้าหลัก - เกมทายศัพท์</title>
+    <title>หมู่บ้านเริ่มต้น - Guild</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Sarabun:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
-        /* ตั้งค่าพื้นหลังและฟอนต์ให้ดูสบายตา */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f4f8; /* สีพื้นหลังโทนฟ้าเทาอ่อนๆ */
+        :root {
+            --panel-bg: rgba(18, 20, 25, 0.85);
+            --panel-border: #a4915c;
+            --text-gold: #e2ce90;
+            --text-main: #dfdeda;
+            --btn-bg: linear-gradient(to bottom, #4a4a4a, #202020);
+            --btn-border: #8c7a4b;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(to bottom, transparent, rgba(5, 10, 15, 0.95)), url('images/guild_hall.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
 
-        /* กล่องคอนเทนเนอร์หลัก */
-        .container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-            box-sizing: border-box;
+        .fog-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(226, 206, 144, 0.05) 0%, rgba(5, 10, 15, 0.7) 100%);
+            z-index: 1;
+            pointer-events: none;
+            animation: pulseFog 8s infinite alternate ease-in-out;
         }
 
-        /* ส่วนหัว (Header) */
-        .header {
-            text-align: center;
-            margin-bottom: 2.5rem;
+        @keyframes pulseFog {
+            0% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
-        .header h1 {
-            color: #2c3e50;
-            margin: 0 0 5px 0;
-            font-size: 2.2rem;
-        }
-
-        .header p {
-            color: #7f8c8d;
-            margin: 0;
-            font-size: 1rem;
-        }
-
-        /* ชื่อผู้ใช้โดดเด่น */
-        .highlight-name {
-            color: #4CAF50;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        /* เลย์เอาต์ของเมนู */
-        .menu-grid {
-            display: grid;
-            gap: 15px; /* ระยะห่างระหว่างการ์ด */
-        }
-
-        /* ตกแต่งการ์ดเมนูแต่ละอัน */
-        .menu-card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #333;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+        .ff-panel {
             position: relative;
-            overflow: hidden;
+            z-index: 10;
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 35px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(164, 145, 92, 0.1);
         }
 
-        /* เอฟเฟกต์เวลาเอาเมาส์ชี้การ์ด */
-        .menu-card:hover {
-            transform: translateY(-10px); /* เลื่อนขึ้นนิดนึง */
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1); /* เพิ่มเงาให้ดูมีมิติ */
+        .ff-panel::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
         }
 
-        /* แถบสีด้านซ้ายของการ์ดแต่ละใบ */
-        .menu-card.play { border-left: 6px solid #4CAF50; }
-        .menu-card.profile { border-left: 6px solid #2196F3; }
-        .menu-card.dict { border-left: 6px solid #FF9800; }
+        .ff-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
 
-        /* ไอคอน (Emoji) */
-        .menu-icon {
-            font-size: 2.5rem;
-            margin-right: 20px;
-            min-width: 50px;
+        .brand-logo {
             text-align: center;
+            margin-bottom: 30px;
         }
 
-        /* ส่วนข้อความในการ์ด */
-        .menu-text h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.2rem;
-            color: #2c3e50;
+        .brand-logo h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
-        .menu-text p {
-            margin: 0;
+        .brand-logo p {
+            font-size: 1rem;
+            color: #a09d94;
+            letter-spacing: 1px;
+        }
+
+        .welcome-box {
+            background: rgba(10, 15, 20, 0.6);
+            border: 1px solid #404040;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .welcome-box p {
             font-size: 0.85rem;
-            color: #7f8c8d;
+            color: #a09d94;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
         }
 
-        /* ปุ่มออกจากระบบ */
-        .logout-btn {
-            display: block;
-            text-align: center;
-            margin-top: 30px;
-            color: #e74c3c;
+        .character-name {
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1.5rem;
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+            font-weight: 700;
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-action {
+            width: 100%;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-gold);
+            padding: 15px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
             text-decoration: none;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 8px;
-            background-color: #fce4e4;
-            transition: background-color 0.3s;
+            text-align: center;
+            text-shadow: 0 1px 2px #000;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
-        .logout-btn:hover {
-            background-color: #f5c6c6;
+        .btn-action:hover {
+            background: linear-gradient(to bottom, #5a5a5a, #303030);
+            color: #fff;
+            border-color: #ffd54f;
+            box-shadow: 0 0 10px rgba(164, 145, 92, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-action:active {
+            transform: translateY(1px);
+        }
+
+        .btn-action span {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 8px;
+            text-transform: none;
+        }
+
+        .ff-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--panel-border), transparent);
+            margin: 20px 0;
+            opacity: 0.5;
+        }
+
+        .btn-danger {
+            color: #ff5252;
+            border-color: #5c3535;
+            background: linear-gradient(to bottom, #3a2222, #1a1010);
+        }
+
+        .btn-danger:hover {
+            border-color: #ff5252;
+            color: #ff8a80;
+            box-shadow: 0 0 10px rgba(255, 82, 82, 0.3);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .modal-title {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .modal-desc {
+            color: #ccc;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #555;
+            color: #fff;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-modal:hover {
+            background: #333;
+        }
+
+        .btn-modal.confirm {
+            border-color: #ff5252;
+            color: #ff5252;
+        }
+
+        .btn-modal.confirm:hover {
+            background: #b71c1c;
+            color: #fff;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>Game Menu</h1>
-            <p>ยินดีต้อนรับ, <span class="highlight-name" id="usernameDisplay"></span>!</p>
+    <div class="fog-overlay"></div>
+
+    <div class="ff-panel">
+        <div class="brand-logo">
+            <h1>Guild</h1>
+
+            <div class="welcome-box">
+                <p>Welcome back</p>
+                <div class="character-name" id="usernameDisplay"></div>
+            </div>
+
+            <div class="menu-list">
+                <a href="profile.html" class="btn-action">
+                    Profile <span>(ข้อมูลสถานะ)</span>
+                </a>
+
+                <a href="test.html" class="btn-action">
+                    Play <span>(ออกปราบจอมมาร)</span>
+                </a>
+
+                <a href="mydict.html" class="btn-action">
+                    Inventory <span>(กระเป๋าสัมภาระ)</span>
+                </a>
+
+                <a href="leaderboard.html" class="btn-action">
+                    Leaderboard <span>(ทำเนียบแรงค์)</span>
+                </a>
+
+                <div class="ff-divider"></div>
+
+                <a href="#" id="logoutBtn" class="btn-action btn-danger">
+                    Log Out <span>(ออกจากระบบ)</span>
+                </a>
+            </div>
         </div>
-
-        <div class="menu-grid">
-            
-            <a href="profile.html" class="menu-card profile">
-                <div class="menu-icon">👤</div>
-                <div class="menu-text">
-                    <h3>โปรไฟล์ (Profile)</h3>
-                    <p>ดูข้อมูลส่วนตัว, แรงค์ และสถิติคำศัพท์</p>
-                </div>
-            </a>
-
-            <a href="test.html" class="menu-card play">
-                <div class="menu-icon">🎮</div>
-                <div class="menu-text">
-                    <h3>เริ่มเล่นเกม (Play)</h3>
-                    <p>เข้าสู่โหมดทายศัพท์เพื่อเก็บคะแนน</p>
-                </div>
-            </a>
-
-            <a href="mydict.html"  class="menu-card dict">
-                <div class="menu-icon">📚</div>
-                <div class="menu-text">
-                    <h3>คลังคำศัพท์ (My Dict)</h3>
-                    <p>ทบทวนคำศัพท์ที่คุณเคยพบมาทั้งหมด</p>
-                </div>
-            </a>
-
-        </div>
-
-        <a href="#" id="logoutBtn" class="logout-btn">🚪 ออกจากระบบ</a>
     </div>
+
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-content">
+            <h2 class="modal-title">System Alert</h2>
+            <p class="modal-desc">คุณต้องการออฟไลน์และออกจากระบบใช่หรือไม่?</p>
+            <div class="modal-actions">
+                <button class="btn-modal" onclick="closeLogoutModal()">Cancel (ยกเลิก)</button>
+                <button class="btn-modal confirm" onclick="confirmLogout()">Confirm (ยืนยัน)</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-    // ทำงานทันทีเมื่อโหลดหน้าเว็บเสร็จ
         document.addEventListener('DOMContentLoaded', () => {
-        // 1. ไปหาชื่อผู้ใช้จาก LocalStorage (ที่เราแอบเก็บไว้ตอน Login สำเร็จ)
-        const username = localStorage.getItem('username');
-
-        if (username) {
-            // 2. ถ้ามีชื่อผู้ใช้ (แปลว่าล็อกอินแล้ว) ให้เอาชื่อไปแสดงบนหน้าเว็บ
-            // ต้องเปลี่ยน {{ username }} ใน HTML เป็น <span id="usernameDisplay"></span>
-            const displayElement = document.getElementById('usernameDisplay');
-            if (displayElement) {
-                displayElement.innerText = username;
-            }
-        } else {
-            // 3. ถ้าไม่มีชื่อผู้ใช้ (แปลว่ายังไม่ล็อกอิน) ให้เด้งกลับไปหน้า login.html
-            alert('กรุณาเข้าสู่ระบบก่อนเข้าถึงหน้านี้');
-            window.location.href = 'login.html';
-        }
-        });
-    </script>
-    <script>
-        document.getElementById('logoutBtn').addEventListener('click', function(event) {
-            event.preventDefault(); // ป้องกันไม่ให้ลิงก์กระตุก
-
-            // ถามเพื่อความแน่ใจ (ใส่หรือไม่ใส่ก็ได้)
-            const confirmLogout = confirm('คุณต้องการออกจากระบบใช่หรือไม่?');
-        
-            if (confirmLogout) {
-                // ลบข้อมูลและเด้งไปหน้า Login
-                localStorage.removeItem('username');
+            const username = localStorage.getItem('username');
+            if (username) {
+                const displayElement = document.getElementById('usernameDisplay');
+                if (displayElement) {
+                    displayElement.innerText = username;
+                }
+            } else {
+                alert('กรุณาเข้าสู่ระบบก่อนเข้าถึงหน้านี้');
                 window.location.href = 'login.html';
             }
         });
+
+        const logoutModal = document.getElementById('logoutModal');
+
+        document.getElementById('logoutBtn').addEventListener('click', function (event) {
+            event.preventDefault();
+            logoutModal.classList.add('active');
+        });
+
+        function closeLogoutModal() {
+            logoutModal.classList.remove('active');
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        }
     </script>
+
 </body>
+
 </html>

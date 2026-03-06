@@ -1,80 +1,230 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>โปรไฟล์ - เกมทายศัพท์</title>
+    <title>ข้อมูลสถานะ - Profile</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Sarabun:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <style>
-        /* (ใส่ CSS เดิมของคุณไว้ตรงนี้ได้เลย ผมขอละไว้เพื่อให้โค้ดสั้นลงนะครับ) */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f8; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; padding: 20px; box-sizing: border-box; }
-        .back-btn { display: inline-block; margin-bottom: 20px; color: #7f8c8d; text-decoration: none; font-weight: bold; transition: color 0.3s; }
-        .back-btn:hover { color: #2c3e50; }
-        .profile-card { background-color: white; border-radius: 16px; padding: 30px 20px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-        .avatar { width: 100px; height: 100px; background-color: #e0f2f1; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 3.5rem; margin: 0 auto 15px auto; border: 4px solid #4CAF50; }
-        .username { margin: 0; font-size: 1.8rem; color: #2c3e50; }
-        .role-text { color: #95a5a6; font-size: 0.9rem; margin-top: 5px; margin-bottom: 25px; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .stat-box { background-color: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #eee; }
-        .stat-box.rank { border-bottom: 4px solid #FF9800; } 
-        .stat-box.words { border-bottom: 4px solid #2196F3; } 
-        .stat-label { display: block; font-size: 0.85rem; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-value { display: block; font-size: 1.5rem; font-weight: bold; color: #333; text-align: center; }
+        :root {
+            --panel-bg: rgba(15, 17, 21, 0.9);
+            --panel-border: #a4915c;
+            --text-gold: #e2ce90;
+            --text-main: #dfdeda;
+            --btn-bg: linear-gradient(to bottom, #4a4a4a, #202020);
+            --btn-border: #8c7a4b;
+            --stat-bg: rgba(5, 7, 10, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(to bottom, transparent, rgba(5, 10, 15, 0.95)), url('images/profile_room.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .fog-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(226, 206, 144, 0.05) 0%, rgba(5, 10, 15, 0.7) 100%);
+            z-index: 1;
+            pointer-events: none;
+            animation: pulseFog 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseFog {
+            0% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .ff-panel {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 35px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(164, 145, 92, 0.1);
+        }
+
+        .ff-panel::before,
+        .ff-panel::after {
+            content: '';
+            position: absolute;
+            height: 2px;
+            left: 10%;
+            right: 10%;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
+
+        .ff-panel::before {
+            top: -4px;
+        }
+
+        .ff-panel::after {
+            bottom: -4px;
+        }
+
+        .header-content {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(164, 145, 92, 0.3);
+            padding-bottom: 15px;
+        }
+
+        .bio-info h1 {
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 700;
+            color: var(--text-gold);
+            font-size: 1.8rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 5px;
+        }
+
+        .bio-info p {
+            font-size: 1rem;
+            color: #a09d94;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--stat-bg);
+            border: 1px solid #404040;
+            padding: 15px;
+            border-radius: 2px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-family: 'Cinzel', serif;
+            color: var(--panel-border);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .btn-action {
+            display: block;
+            width: 100%;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-gold);
+            padding: 12px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1.05rem;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-action:hover {
+            background: linear-gradient(to bottom, #5a5a5a, #303030);
+            color: #fff;
+            border-color: #ffd54f;
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        
-        <a href="index.html" class="back-btn">⬅️ กลับหน้าหลัก</a>
+    <div class="fog-overlay"></div>
 
-        <div class="profile-card">
-            
-            <div class="avatar">👦🏻</div>
-            
-            <h2 class="username" id="displayUsername">Loading...</h2>
-            <div class="role-text" id="displayEmail">กำลังโหลดข้อมูล...</div>
-
-            <div class="stats-grid">
-                
-                <div class="stat-box rank">
-                    <span class="stat-label">Rank</span>
-                    <span class="stat-value" id="displayRank">-</span>
-                </div>
-
-                <div class="stat-box words">
-                    <span class="stat-label">scores</span>
-                    <span class="stat-value" id="displayScore">-</span>
-                </div>
-
+    <div class="ff-panel">
+        <div class="header-content">
+            <div class="bio-info">
+                <h1 id="displayUsername">Loading...</h1>
             </div>
-            
         </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">EXP Gained (Score)</div>
+                <div class="stat-value" id="displayScore">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Contact / Email</div>
+                <div class="stat-value" id="displayEmail" style="font-size: 1rem">-</div>
+            </div>
+            <div class="stat-card"
+                style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; padding: 25px 20px;">
+                <div class="stat-label" style="margin-bottom: 20px;">Current Rank (ระดับยศ)</div>
+                <img id="rankIcon" src="" alt="Rank Icon"
+                    style="width: 140px; height: 140px; object-fit: contain; margin-bottom: 15px; display: none; filter: drop-shadow(0px 0px 10px rgba(0,0,0,0.8));">
+                <div class="stat-value" id="displayRank"
+                    style="font-size: 1.4rem; color: #e2ce90; font-family: 'Cinzel', serif; letter-spacing: 1px;">-
+                </div>
+            </div>
+        </div>
+
+        <a href="index.html" class="btn-action">Return to Guild</a>
     </div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. ดึงชื่อผู้ใช้จาก localStorage
             const username = localStorage.getItem('username');
-            
-            // 2. เช็คว่าล็อกอินหรือยัง
+
             if (!username) {
                 alert('กรุณาเข้าสู่ระบบก่อนครับ');
                 window.location.href = 'login.html';
-                return; 
+                return;
             }
 
             fetch(`http://127.0.0.1:5001/api/profile/${username}`)
                 .then(response => response.json())
                 .then(result => {
                     if (result.status === "success") {
-                        // ถ้าสำเร็จ เอาข้อมูลมายัดใส่ตาม ID ที่ตั้งไว้ใน HTML
                         document.getElementById('displayUsername').innerText = result.data.username;
                         document.getElementById('displayEmail').innerText = result.data.email;
-                        document.getElementById('displayRank').innerText = result.data.rank;
+
+                        const rankNameRaw = result.data.rank || "Bronze";
+                        const cleanRankName = rankNameRaw.replace(/[^a-zA-Z]/g, '').toLowerCase().trim();
+
+                        document.getElementById('displayRank').innerText = rankNameRaw;
                         document.getElementById('displayScore').innerText = result.data.score;
+
+                        const rankIcon = document.getElementById('rankIcon');
+                        if (rankIcon) {
+                            rankIcon.src = `images/rank_${cleanRankName}.png`;
+                            rankIcon.style.display = 'block';
+                        }
                     } else {
-                        // ถ้าไม่สำเร็จ (เช่น หาชื่อไม่เจอในฐานข้อมูล)
                         alert("ไม่สามารถดึงข้อมูลโปรไฟล์ได้: " + result.message);
                     }
                 })
@@ -84,5 +234,7 @@
                 });
         });
     </script>
+
 </body>
+
 </html>

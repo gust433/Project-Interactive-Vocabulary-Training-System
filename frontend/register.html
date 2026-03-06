@@ -1,196 +1,337 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สมัครสมาชิก - เกมทายศัพท์</title>
+    <title>ลงทะเบียนนักผจญภัย - Guild</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Sarabun:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
-        /* จัดวางให้อยู่กึ่งกลางหน้าจอและกำหนดพื้นหลัง */
+        :root {
+            --panel-bg: rgba(18, 20, 25, 0.85);
+            --panel-border: #a4915c;
+            --text-gold: #e2ce90;
+            --text-main: #dfdeda;
+            --input-bg: rgba(5, 7, 10, 0.6);
+            --focus-glow: #64b5f6;
+            --btn-bg: linear-gradient(to bottom, #4a4a4a, #202020);
+            --btn-border: #8c7a4b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(to bottom, transparent, rgba(5, 10, 15, 0.95)), url('images/guild_entrance.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
         }
 
-        /* ตกแต่งกล่อง Register */
-        .register-box {
-            background-color: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        /* เอฟเฟกต์หมอกบางๆ พื้นหลังให้ดูขลังๆ */
+        .fog-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(226, 206, 144, 0.05) 0%, rgba(5, 10, 15, 0.7) 100%);
+            z-index: 1;
+            pointer-events: none;
+            animation: pulseFog 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseFog {
+            0% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .ff-panel {
+            position: relative;
+            z-index: 10;
             width: 100%;
-            max-width: 350px;
+            max-width: 450px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 35px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(164, 145, 92, 0.1);
+        }
+
+        /* ตกแต่งกรอบสไตล์เกม MMORPG หรูหรา */
+        .ff-panel::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
+
+        .ff-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
+
+        .brand-logo {
             text-align: center;
+            margin-bottom: 25px;
         }
 
-        .register-box h2 {
-            margin-top: 0;
-            color: #333;
-            margin-bottom: 1.5rem;
+        .brand-logo h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
-        /* ตกแต่งช่องกรอกข้อมูล */
-        .input-group {
-            margin-bottom: 1.2rem;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        .input-group input:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
-
-        /* ตกแต่งข้อความแจ้งเตือน Error */
-        .error-message {
-            color: #e74c3c;
+        .brand-logo p {
             font-size: 0.85rem;
-            margin-top: -0.5rem;
-            margin-bottom: 1rem;
-            text-align: left;
-            display: none; /* ซ่อนไว้ก่อน จะแสดงเมื่อรหัสไม่ตรงกัน */
+            color: #a09d94;
+            letter-spacing: 1px;
         }
 
-        /* ตกแต่งปุ่มกด */
-        button {
-            width: 100%;
-            padding: 0.8rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .form-row {
+            margin-bottom: 20px;
         }
 
-        button:hover {
-            background-color: #45a049;
-        }
-
-        /* ลิงก์กลับไปหน้า Login */
-        .login-link {
-            margin-top: 1.5rem;
+        .form-row label {
+            display: block;
             font-size: 0.9rem;
-            color: #777;
+            color: var(--text-gold);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .login-link a {
-            color: #4CAF50;
+        .ff-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid #404040;
+            padding: 12px 15px;
+            color: #fff;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+            border-radius: 2px;
+        }
+
+        .ff-input:focus {
+            border-color: var(--focus-glow);
+            box-shadow: 0 0 8px rgba(100, 181, 246, 0.4);
+            background: rgba(10, 15, 20, 0.8);
+        }
+
+        .ff-input::placeholder {
+            color: #555;
+        }
+
+        .system-msg {
+            font-size: 0.85rem;
+            color: #ff5252;
+            text-align: center;
+            min-height: 20px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .system-msg.show {
+            opacity: 1;
+        }
+
+        .btn-action {
+            width: 100%;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-gold);
+            padding: 12px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            text-shadow: 0 1px 2px #000;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-action:hover {
+            background: linear-gradient(to bottom, #5a5a5a, #303030);
+            color: #fff;
+            border-color: #ffd54f;
+            box-shadow: 0 0 10px rgba(164, 145, 92, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-action:active {
+            transform: translateY(1px);
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+
+        .nav-link a {
+            color: var(--text-gold);
             text-decoration: none;
-            font-weight: bold;
+            transition: color 0.2s;
+            border-bottom: 1px dashed var(--text-gold);
+            padding-bottom: 2px;
         }
 
-        .login-link a:hover {
-            text-decoration: underline;
+        .nav-link a:hover {
+            color: #fff;
+            border-bottom-color: #fff;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="register-box">
-        <h2>สมัครสมาชิก<br>🎮 เกมทายศัพท์</h2>
-        
+    <div class="fog-overlay"></div>
+
+    <div class="ff-panel">
+        <div class="brand-logo">
+            <h1>Create Adventurer</h1>
+            <p>ลงนามประวัติเพื่อเริ่มต้นการเดินทาง</p>
+        </div>
+
         <form id="registerForm">
-            <div class="input-group">
-                <label for="username">ชื่อผู้ใช้ (Username)</label>
-                <input type="text" id="username" name="username" placeholder="ตั้งชื่อผู้ใช้ของคุณ" required>
+            <div class="form-row">
+                <label for="username">Name (ชื่อตัวละคร)</label>
+                <input type="text" id="username" name="username" class="ff-input" placeholder="กรอกชื่อตัวละครของคุณ..."
+                    required autocomplete="off">
             </div>
 
-            <div class="input-group">
-                <label for="email">อีเมล (Email)</label>
-                <input type="email" id="email" name="email" placeholder="กรอกอีเมล" required>
-            </div>
-            
-            <div class="input-group">
-                <label for="password">รหัสผ่าน (Password)</label>
-                <input type="password" id="password" name="password" placeholder="ตั้งรหัสผ่าน" required>
+            <div class="form-row">
+                <label for="email">Contact (อีเมลติดต่อ)</label>
+                <input type="email" id="email" name="email" class="ff-input" placeholder="กรอกอีเมล..." required
+                    autocomplete="off">
             </div>
 
-            <div class="input-group">
-                <label for="confirmPassword">ยืนยันรหัสผ่าน (Confirm Password)</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+            <div class="form-row">
+                <label for="password">Password (รหัสผ่าน)</label>
+                <input type="password" id="password" name="password" class="ff-input"
+                    placeholder="ความยาวอย่างน้อย 6 ตัวอักษร" required>
             </div>
-            
-            <div id="passwordError" class="error-message">รหัสผ่านไม่ตรงกัน กรุณาลองใหม่</div>
 
-            <button type="submit">ยืนยันการสมัคร</button>
+            <div class="form-row">
+                <label for="confirmPassword">Confirm Password (ยืนยันรหัสผ่าน)</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="ff-input"
+                    placeholder="ยืนยันรหัสผ่านอีกครั้ง" required>
+            </div>
+
+            <div id="systemMessage" class="system-msg">
+                รหัสผ่านไม่ตรงกัน
+            </div>
+
+            <button type="submit" class="btn-action" id="submitBtn">
+                Register (ลงทะเบียน)
+            </button>
         </form>
 
-        <div class="login-link">
-            มีบัญชีอยู่แล้วใช่ไหม? <a href="{{ url_for('login') }}">เข้าสู่ระบบที่นี่</a>
+        <div class="nav-link">
+            มีตัวละครอยู่แล้ว? <a href="login.html">Login (เข้าสู่ระบบ)</a>
         </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+        const form = document.getElementById('registerForm');
+        const sysMsg = document.getElementById('systemMessage');
+        const btnSubmit = document.getElementById('submitBtn');
 
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        const errorMsg = document.getElementById('passwordError');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
 
-        // 1. เช็คว่ารหัสผ่าน 2 ช่องตรงกันหรือไม่ 
-        if (password !== confirmPassword) {
-            errorMsg.style.display = 'block'; 
-            return; // หยุดการทำงาน ไม่ส่งข้อมูลต่อ
-        } else {
-            errorMsg.style.display = 'none'; 
-        }
+            btnSubmit.innerHTML = "Processing...";
+            btnSubmit.disabled = true;
 
-        // 2. ดึงข้อมูลทั้งหมดจากฟอร์มเตรียมส่ง
-        const formElement = document.getElementById('registerForm');
-        const formData = new FormData(formElement);
-        const jsonData = Object.fromEntries(formData);
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-        // 3. ยิงข้อมูลไปที่ Endpoint ของ Backend (ต้องใส่ URL เต็ม)
-        fetch('http://localhost:5001/api/register', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(jsonData)
-        })
-        .then(response => response.json()) // 4. แปลงข้อมูลที่ Backend ส่งมาเป็น JSON เสมอ
-        .then(data => {
-            // 5. เช็ค status จาก JSON ที่เราเขียนไว้ใน Python
-            if (data.status === 'success') {
-                // สำเร็จ -> แจ้งเตือนและพาไปหน้า Login
-                alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ 🎮');
-                localStorage.setItem('username', jsonData.username);
-                window.location.href = 'index.html'; 
-            } else {
-                // ไม่สำเร็จ (เช่น ชื่อซ้ำ, ฐานข้อมูลพัง) -> เอาข้อความจาก Backend มาแจ้งเตือน
-                alert(data.message); 
+            sysMsg.classList.remove('show');
+
+            if (password !== confirmPassword) {
+                setTimeout(() => {
+                    sysMsg.innerHTML = "System Error: รหัสผ่านไม่ตรงกัน";
+                    sysMsg.classList.add('show');
+                    btnSubmit.innerHTML = "Register (ลงทะเบียน)";
+                    btnSubmit.disabled = false;
+                }, 300);
+                return;
             }
-        })
-        .catch(error => {
-            // กรณี Backend ไม่เปิด หรือเน็ตหลุด
-            console.error('Error:', error);
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+
+            if (password.length < 6) {
+                setTimeout(() => {
+                    sysMsg.innerHTML = "System Error: รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร";
+                    sysMsg.classList.add('show');
+                    btnSubmit.innerHTML = "Register (ลงทะเบียน)";
+                    btnSubmit.disabled = false;
+                }, 300);
+                return;
+            }
+
+            const formData = new FormData(form);
+            const jsonData = Object.fromEntries(formData);
+
+            fetch('http://localhost:5001/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        btnSubmit.innerHTML = "Registration Complete";
+                        btnSubmit.style.borderColor = "#69f0ae";
+                        btnSubmit.style.color = "#69f0ae";
+                        localStorage.setItem('username', jsonData.username);
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1200);
+                    } else {
+                        sysMsg.innerHTML = "System Error: " + data.message;
+                        sysMsg.classList.add('show');
+                        btnSubmit.innerHTML = "Register (ลงทะเบียน)";
+                        btnSubmit.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    sysMsg.innerHTML = "Network Error: ขาดการเชื่อมต่อกับเซิร์ฟเวอร์";
+                    sysMsg.classList.add('show');
+                    btnSubmit.innerHTML = "Register (ลงทะเบียน)";
+                    btnSubmit.disabled = false;
+                });
         });
-    });
     </script>
-    
 </body>
+
 </html>

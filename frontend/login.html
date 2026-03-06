@@ -1,165 +1,295 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ - เกมทายศัพท์</title>
+    <title>เข้าสู่ระบบ - Guild</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Sarabun:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
-        /* จัดวางให้อยู่กึ่งกลางหน้าจอและกำหนดพื้นหลัง */
+        :root {
+            --panel-bg: rgba(18, 20, 25, 0.85);
+            --panel-border: #a4915c;
+            --text-gold: #e2ce90;
+            --text-main: #dfdeda;
+            --input-bg: rgba(5, 7, 10, 0.6);
+            --focus-glow: #64b5f6;
+            --btn-bg: linear-gradient(to bottom, #4a4a4a, #202020);
+            --btn-border: #8c7a4b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(to bottom, transparent, rgba(5, 10, 15, 0.95)), url('images/guild_reception.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
         }
 
-        /* ตกแต่งกล่อง Login */
-        .login-box {
-            background-color: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        /* เอฟเฟกต์หมอก/แสงตะเกียงบางๆ พื้นหลังให้ดูขลังๆ */
+        .fog-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(226, 206, 144, 0.05) 0%, rgba(5, 10, 15, 0.7) 100%);
+            z-index: 1;
+            pointer-events: none;
+            animation: pulseFog 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseFog {
+            0% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .ff-panel {
+            position: relative;
+            z-index: 10;
             width: 100%;
-            max-width: 350px;
+            max-width: 450px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 35px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(164, 145, 92, 0.1);
+        }
+
+        .ff-panel::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
+
+        .ff-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
+
+        .brand-logo {
             text-align: center;
+            margin-bottom: 25px;
         }
 
-        .login-box h2 {
-            margin-top: 0;
-            color: #333;
-            margin-bottom: 1.5rem;
+        .brand-logo h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
-        /* ตกแต่งช่องกรอกข้อมูล */
-        .input-group {
-            margin-bottom: 1.2rem;
-            text-align: left;
+        .brand-logo p {
+            font-size: 0.85rem;
+            color: #a09d94;
+            letter-spacing: 1px;
         }
 
-        .input-group label {
+        .form-row {
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #666;
             font-size: 0.9rem;
+            color: var(--text-gold);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .input-group input {
+        .ff-input {
             width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
+            background: var(--input-bg);
+            border: 1px solid #404040;
+            padding: 12px 15px;
+            color: #fff;
+            font-family: 'Sarabun', sans-serif;
             font-size: 1rem;
-        }
-
-        .input-group input:focus {
-            border-color: #4CAF50;
+            transition: all 0.3s;
             outline: none;
+            border-radius: 2px;
         }
 
-        /* ตกแต่งปุ่มกด */
-        button {
+        .ff-input:focus {
+            border-color: var(--focus-glow);
+            box-shadow: 0 0 8px rgba(100, 181, 246, 0.4);
+            background: rgba(10, 15, 20, 0.8);
+        }
+
+        .system-msg {
+            font-size: 0.85rem;
+            color: #ff5252;
+            text-align: center;
+            min-height: 20px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .system-msg.show {
+            opacity: 1;
+        }
+
+        .btn-action {
             width: 100%;
-            padding: 0.8rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-gold);
+            padding: 12px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 500;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            text-shadow: 0 1px 2px #000;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
-        button:hover {
-            background-color: #45a049;
+        .btn-action:hover {
+            background: linear-gradient(to bottom, #5a5a5a, #303030);
+            color: #fff;
+            border-color: #ffd54f;
+            box-shadow: 0 0 10px rgba(164, 145, 92, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
-        .register-link {
-            margin-top: 1.5rem;
+        .btn-action:active {
+            transform: translateY(1px);
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-top: 25px;
             font-size: 0.9rem;
-            color: #777;
         }
 
-        .register-link a {
-            color: #4CAF50;
+        .nav-link a {
+            color: var(--text-gold);
             text-decoration: none;
-            font-weight: bold;
+            transition: color 0.2s;
+            border-bottom: 1px dashed var(--text-gold);
+            padding-bottom: 2px;
         }
 
-        .register-link a:hover {
-            text-decoration: underline;
+        .nav-link a:hover {
+            color: #fff;
+            border-bottom-color: #fff;
         }
-
-        .my-btn:hover {
-        background-color: #45a049; /* สีเวลาเอาเมาส์ไปชี้ */
-        }   
     </style>
 </head>
+
 <body>
 
-    <div class="login-box">
-        <h2>เข้าสู่ระบบ<br>🎮 เกมทายศัพท์</h2>
-        
+    <div class="fog-overlay"></div>
+
+    <div class="ff-panel">
+        <div class="brand-logo">
+            <h1>Login</h1>
+            <p>เชื่อมต่อเข้าสู่เซิร์ฟเวอร์หลัก</p>
+        </div>
+
         <form id="loginForm">
-            <div class="input-group">
-                <label for="username">ชื่อผู้ใช้ (Username)</label>
-                <input type="text" id="username" name="username" placeholder="กรอกชื่อผู้ใช้ของคุณ" required>
+            <div class="form-row">
+                <label for="username">Name (ชื่อตัวละคร)</label>
+                <input type="text" id="username" name="username" class="ff-input" placeholder="กรอกชื่อตัวละคร..."
+                    required autocomplete="off">
             </div>
-            
-            <div class="input-group">
-                <label for="password">รหัสผ่าน (Password)</label>
-                <input type="password" id="password" name="password" placeholder="กรอกรหัสผ่าน" required>
+
+            <div class="form-row">
+                <label for="password">Password (รหัสผ่าน)</label>
+                <input type="password" id="password" name="password" class="ff-input" placeholder="กรอกรหัสผ่าน..."
+                    required>
             </div>
-            
-            <button type="submit">Play!</button>
+
+            <div id="systemMessage" class="system-msg"></div>
+
+            <button type="submit" class="btn-action" id="submitBtn">
+                Login (เข้าสู่ระบบ)
+            </button>
         </form>
 
-        <div class="register-link">
-            ยังไม่มีบัญชีใช่ไหม? <a href="register.html">สมัครสมาชิกที่นี่</a>
+        <div class="nav-link">
+            ยังไม่มีตัวละครในกิลด์? <a href="register.html">Create Adventurer</a>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+        const form = document.getElementById('loginForm');
+        const sysMsg = document.getElementById('systemMessage');
+        const btnSubmit = document.getElementById('submitBtn');
 
-            // 1. ดึงข้อมูล Username และ Password จากฟอร์ม
-            const formElement = document.getElementById('loginForm');
-            const formData = new FormData(formElement);
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
 
-            // 2. ส่งข้อมูลไปให้ Backend ตรวจสอบ
+            btnSubmit.innerHTML = "Authenticating...";
+            btnSubmit.disabled = true;
+            sysMsg.classList.remove('show');
+
+            const formData = new FormData(form);
+
+            const jsonData = Object.fromEntries(formData);
+
             fetch('http://localhost:5001/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(Object.fromEntries(formData))
+                body: JSON.stringify(jsonData)
             })
-            .then(response => response.json())
-            .then(data => {
-                // 3. เช็คสถานะที่ Backend ส่งกลับมา
-                if (data.status === 'success') {
-                    // 🎉 ล็อกอินสำเร็จ! 
-                    // เก็บชื่อผู้ใช้ลงใน LocalStorage ก่อน
-                    localStorage.setItem('username', data.username);
-                    
-                    // สั่งให้เบราว์เซอร์พาไปหน้าหลักด้วยตัวเอง
-                    window.location.href = 'index.html'; 
-                } else {
-                    // ❌ ล็อกอินไม่สำเร็จ (รหัสผิด / ไม่มีชื่อนี้) แจ้งเตือนข้อความ
-                    alert(data.message); 
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่ภายหลัง');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        btnSubmit.innerHTML = "Connection Established";
+                        btnSubmit.style.borderColor = "#69f0ae";
+                        btnSubmit.style.color = "#69f0ae";
+                        localStorage.setItem('username', data.username);
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 800);
+                    } else {
+                        sysMsg.innerHTML = "System Error: " + data.message;
+                        sysMsg.classList.add('show');
+                        btnSubmit.innerHTML = "Login (เข้าสู่ระบบ)";
+                        btnSubmit.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    sysMsg.innerHTML = "Network Error: ขาดการเชื่อมต่อกับเซิร์ฟเวอร์";
+                    sysMsg.classList.add('show');
+                    btnSubmit.innerHTML = "Login (เข้าสู่ระบบ)";
+                    btnSubmit.disabled = false;
+                });
         });
     </script>
-    
 </body>
+
 </html>

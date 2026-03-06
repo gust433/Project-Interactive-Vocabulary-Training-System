@@ -4,259 +4,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Dict - เกมทายศัพท์</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <title>กระเป๋าสัมภาระ - Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Sarabun:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
-        /* --- ธีมสีหลัก --- */
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-color: #f3f4f6;
-            --text-dark: #2d3748;
-            --text-light: #718096;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.4);
+            --panel-bg: rgba(18, 20, 25, 0.9);
+            --panel-border: #a4915c;
+            --text-gold: #e2ce90;
+            --text-main: #dfdeda;
+            --btn-bg: linear-gradient(to bottom, #4a4a4a, #202020);
+            --btn-border: #8c7a4b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(252, 96, 118, 0.1) 0%, transparent 20%);
-            margin: 0;
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(to bottom, transparent, rgba(5, 10, 15, 0.95)), url('images/inventory_treasury.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: var(--text-dark);
             padding: 20px;
-            box-sizing: border-box;
         }
 
-        /* ปุ่มย้อนกลับ */
-        .back-btn-fixed {
+        .fog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(226, 206, 144, 0.05) 0%, rgba(5, 10, 15, 0.7) 100%);
+            z-index: 1;
+            pointer-events: none;
+            animation: pulseFog 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseFog {
+            0% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .back-btn {
             position: absolute;
             top: 20px;
             left: 20px;
+            color: var(--text-gold);
             text-decoration: none;
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            background: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border: 1px solid var(--panel-border);
         }
 
-        .back-btn-fixed:hover {
-            transform: scale(1.1) rotate(-10deg);
-            color: #764ba2;
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
         }
 
-        /* กล่องหลัก */
-        .dict-container {
+        .ff-panel {
+            position: relative;
+            z-index: 10;
             width: 100%;
-            max-width: 650px;
-            padding: 30px;
-            border-radius: 24px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 2px solid var(--glass-border);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 35px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(164, 145, 92, 0.1);
         }
 
-        /* ส่วนหัว */
-        .header-title {
+        .ff-panel::before,
+        .ff-panel::after {
+            content: '';
+            position: absolute;
+            height: 2px;
+            left: 10%;
+            right: 10%;
+            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
+        }
+
+        .ff-panel::before {
+            top: -4px;
+        }
+
+        .ff-panel::after {
+            bottom: -4px;
+        }
+
+        .brand-logo {
             text-align: center;
-            font-weight: 800;
-            font-size: 2rem;
-            margin: 0 0 5px 0;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
         }
 
-        .header-subtitle {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-bottom: 25px;
+        .brand-logo h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            font-size: 1.5rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
         }
 
-        /* ช่องค้นหาคำศัพท์ */
         .search-box {
             width: 100%;
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(5, 7, 10, 0.6);
+            border: 1px solid #404040;
+            padding: 10px 15px;
+            color: #fff;
+            font-family: 'Sarabun', sans-serif;
             font-size: 1rem;
-            font-family: inherit;
-            color: var(--text-dark);
-            box-sizing: border-box;
-            margin-bottom: 20px;
-            transition: all 0.3s;
+            margin-bottom: 15px;
             outline: none;
+            border-radius: 2px;
         }
 
         .search-box:focus {
-            border-color: #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+            border-color: #64b5f6;
         }
 
-        /* ตารางคำศัพท์ */
-        .dict-table-wrapper {
+        .table-wrapper {
             max-height: 400px;
             overflow-y: auto;
-            border-radius: 12px;
+            border: 1px solid #404040;
+            background: rgba(0, 0, 0, 0.4);
         }
 
-        .dict-table-wrapper::-webkit-scrollbar {
-            width: 6px;
+        /* Scrollbar */
+        .table-wrapper::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .dict-table-wrapper::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
-            border-radius: 10px;
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 4px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
             text-align: left;
         }
 
         thead {
-            background: #f7fafc;
+            background: linear-gradient(to bottom, #2a2a2a, #111);
             position: sticky;
             top: 0;
             z-index: 1;
         }
 
         th {
-            padding: 15px;
+            padding: 10px;
+            font-family: 'Cinzel', serif;
             font-size: 0.9rem;
-            color: var(--text-light);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #edf2f7;
+            color: var(--text-gold);
+            border-bottom: 1px solid var(--panel-border);
         }
 
         td {
-            padding: 15px;
-            font-size: 0.95rem;
-            border-bottom: 1px solid #edf2f7;
-            color: var(--text-dark);
-        }
-
-        tbody tr {
-            transition: background-color 0.2s;
+            padding: 12px 10px;
+            font-size: 1rem;
+            border-bottom: 1px dashed #333;
+            color: #ccc;
         }
 
         tbody tr:hover {
-            background-color: #f0f4ff;
+            background-color: rgba(255, 255, 255, 0.03);
         }
 
         .col-vocab {
-            font-weight: 600;
-            color: #4a5568;
+            font-weight: 500;
+            color: #fff;
         }
 
-        /* --- ตกแต่งปุ่มลบ (Delete Button) --- */
-        .btn-delete {
-            background-color: #fee2e2;
-            color: #ef4444;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
+        .tag-type {
+            font-size: 0.7rem;
+            border: 1px solid #555;
+            padding: 2px 4px;
+            background: #111;
+            border-radius: 2px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        .note-box {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed #555;
+            color: #ccc;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.9rem;
+            padding: 6px;
+            border-radius: 2px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .note-box:focus {
+            background: rgba(0, 0, 0, 0.6);
+            border-color: #e2ce90;
+            color: #fff;
+        }
+
+        .tag-type {
+            font-size: 0.8rem;
+            border: 1px solid #555;
+            padding: 2px 6px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .btn-toss {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ff5252;
+            border: 1px solid #ff5252;
+            padding: 4px 10px;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .btn-delete:hover {
-            background-color: #ef4444;
-            color: white;
-            transform: scale(1.05);
-        }
-
-        /* --- ตกแต่งช่อง Note ให้ดูคลิกเพื่อแก้ได้ --- */
-        .note-cell {
-            cursor: text;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px dashed transparent;
             transition: all 0.2s;
-            min-height: 24px;
         }
 
-        .note-cell:hover {
-            background-color: #f8fafc;
-            border-color: #cbd5e0;
+        .btn-toss:hover {
+            background: #ff5252;
+            color: #fff;
         }
 
-        .note-cell:focus {
-            outline: none;
-            background-color: white;
-            border-color: #667eea;
-            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-        }
-
-        /* ข้อความจางๆ กรณีที่ Note ว่างเปล่า */
-        .note-cell:empty:before {
-            content: attr(data-placeholder);
-            color: #a0aec0;
-            font-style: italic;
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
             pointer-events: none;
-            display: block;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(164, 145, 92, 0.1);
+        }
+
+        .modal-title {
+            font-family: 'Cinzel', serif;
+            color: #ff5252;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .modal-desc {
+            color: #ccc;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #555;
+            color: #fff;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-modal:hover {
+            background: #333;
+        }
+
+        .btn-modal.confirm {
+            border-color: #ff5252;
+            color: #ff5252;
+        }
+
+        .btn-modal.confirm:hover {
+            background: #b71c1c;
+            color: #fff;
         }
     </style>
 </head>
 
 <body>
 
-    <a href="index.html" class="back-btn-fixed">⬅️</a>
+    <div class="fog-overlay"></div>
+    <a href="index.html" class="back-btn">◀ Guild</a>
 
-    <div class="dict-container">
-        <h1 class="header-title">My Dict 📚</h1>
-        <p class="header-subtitle">คลังคำศัพท์ที่คุณสะสมไว้ทั้งหมด</p>
+    <div class="ff-panel">
+        <div class="brand-logo">
+            <h1>Inventory</h1>
+        </div>
 
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 พิมพ์เพื่อค้นหาคำศัพท์ หรือ ความหมาย...">
+        <input type="text" id="searchInput" class="search-box" placeholder="Search Item (ค้นหาคำศัพท์)...">
 
-        <div class="dict-table-wrapper">
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
-                        <th width="10%">No.</th>
-                        <th width="25%">Vocab</th>        
-                        <th width="25%">Meaning</th>
+                        <th width="25%">Item Name</th>
+                        <th width="30%">Effect (ความหมาย)</th>
+                        <th width="30%">Note</th>
                         <th width="15%" style="text-align: center;">Action</th>
-                        <th width="25%" style="text-align: center;">Note</th>
                     </tr>
                 </thead>
-                <tbody id="dictBody">
+                <tbody id="dict-body">
                 </tbody>
             </table>
         </div>
     </div>
 
+    <div class="modal-overlay" id="tossModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Delete Item</h2>
+            <p class="modal-desc" id="tossDesc">คุณต้องการลบไอเทมนี้ใช่หรือไม่?</p>
+            <div class="modal-actions">
+                <button class="btn-modal" onclick="closeTossModal()">Cancel (ยกเลิก)</button>
+                <button class="btn-modal confirm" onclick="confirmToss()">Delete (ลบเลย)</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ตัวแปรเก็บข้อมูลคำศัพท์ที่ดึงมาจาก Database
         let myWords = [];
-        const dictBody = document.getElementById('dictBody');
+        const tableBody = document.getElementById('dict-body');
         const searchInput = document.getElementById('searchInput');
 
-        // 1. ทำงานเมื่อเปิดหน้าเว็บ
         document.addEventListener('DOMContentLoaded', () => {
             const username = localStorage.getItem('username');
             if (!username) {
@@ -265,13 +374,12 @@
                 return;
             }
 
-            // ดึงข้อมูลคำศัพท์จาก Backend
-            fetch(`http://localhost:5001/api/mydict/${username}`)
+            fetch(`http://127.0.0.1:5001/api/mydict/${username}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        myWords = data.data; // เอาข้อมูลของจริงมาใส่ในตัวแปร
-                        renderTable(myWords); // สั่งแสดงผลบนตาราง
+                        myWords = data.data;
+                        renderTable(myWords);
                     } else {
                         alert(data.message);
                     }
@@ -279,111 +387,109 @@
                 .catch(error => console.error('Error fetching dict:', error));
         });
 
-        // 2. ฟังก์ชันวาดตาราง
-        function renderTable(dataArray) {
-            dictBody.innerHTML = '';
-            if (dataArray.length === 0) {
-                dictBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">ไม่พบคำศัพท์ในคลัง</td></tr>`;
+        function renderTable(data) {
+            tableBody.innerHTML = "";
+
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #777;">( Inventory is Empty )</td></tr>`;
                 return;
             }
-            
-            dataArray.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td class="col-vocab">${item.vocab}</td>
-                <td>${item.meaning}</td>
-                <td style="text-align: center;">
-                    <button class="btn-delete" onclick="deleteWord('${item.id}', '${item.vocab}')">🗑️ ลบ</button>
-                </td>
-                <td class="note-cell" 
-                    contenteditable="true" 
-                    data-placeholder="คลิกเพื่อพิมพ์โน้ต..." 
-                    data-original="${item.note || ''}" 
-                    onblur="updateNote('${item.id}', this)">${item.note || ''}</td>
-            `;
-                dictBody.appendChild(tr);
+
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="col-vocab">
+                        ${item.vocab} 
+                        <span class="tag-type">${item.type ? item.type.toUpperCase() : 'VOCAB'}</span>
+                    </td>
+                    <td>${item.meaning}</td>
+                    <td>
+                        <input type="text" class="note-box" value="${item.note || ''}" placeholder="Add note... (บันทึกส่วนตัว)" onblur="saveNote('${item.id}', this.value)" />
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn-toss" onclick="deleteWord('${item.id}', '${item.vocab}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
             });
         }
 
-        // 3. ฟังก์ชันค้นหา
-        searchInput.addEventListener('keyup', function (e) {
-            filterAndRender();
+        searchInput.addEventListener('keyup', () => {
+            const searchString = searchInput.value.toLowerCase();
+            renderTable(myWords.filter(item =>
+                item.vocab.toLowerCase().includes(searchString) || item.meaning.includes(searchString)
+            ));
         });
 
-        function filterAndRender() {
-            const searchString = searchInput.value.toLowerCase();
-            const filteredWords = myWords.filter(item => {
-                return item.vocab.toLowerCase().includes(searchString) ||
-                    item.meaning.includes(searchString);
-            });
-            renderTable(filteredWords);
-        }
+        let currentTossId = null;
+        let currentTossWord = "";
 
-        // 4. ฟังก์ชันลบคำศัพท์
+        const tossModal = document.getElementById('tossModal');
+        const tossDesc = document.getElementById('tossDesc');
+
         function deleteWord(wordId, wordText) {
-            const isConfirmed = confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบคำว่า "${wordText}" ออกจากคลัง?`);
-
-            if (isConfirmed) {
-                fetch(`http://localhost:5001/api/mydict/${wordId}`, {
-                    method: 'DELETE'
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            const index = myWords.findIndex(item => item.id == wordId);
-                            if (index !== -1) {
-                                myWords.splice(index, 1);
-                                filterAndRender(); 
-                            }
-                        } else {
-                            alert(data.message);
-                        }
-                    })
-                    .catch(error => console.error('Error deleting word:', error));
-            }
+            currentTossId = wordId;
+            currentTossWord = wordText;
+            tossDesc.innerText = `Do you really want to delete [${wordText}]?`;
+            tossModal.classList.add('active');
         }
 
-        // 5. ฟังก์ชันอัปเดต Note เมื่อคลิกที่อื่น (onblur)
-        function updateNote(wordId, element) {
-            const newNote = element.innerText.trim();
-            const originalNote = element.getAttribute('data-original');
+        function closeTossModal() {
+            tossModal.classList.remove('active');
+            currentTossId = null;
+            currentTossWord = "";
+        }
 
-            // อัปเดตก็ต่อเมื่อข้อความมีการเปลี่ยนแปลงจริงๆ
-            if (newNote !== originalNote) {
-                
-                // ยิง API ไปอัปเดต Note ที่ Backend
-                fetch(`http://localhost:5001/api/save_note/${wordId}`, {
-                    method: 'POST', // หรือ POST ตามที่ Backend คุณเขียนไว้
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ note: newNote })
-                })
+        function confirmToss() {
+            if (!currentTossId) return;
+
+            fetch(`http://127.0.0.1:5001/api/mydict/${currentTossId}`, {
+                method: 'DELETE'
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        // เปลี่ยนค่า original ให้เป็นค่าใหม่
-                        element.setAttribute('data-original', newNote);
-                        
-                        // อัปเดตใน Array หลักด้วย เผื่อเวลา Search จะได้ไม่หาย
-                        const wordObj = myWords.find(item => item.id == wordId);
-                        if(wordObj) wordObj.note = newNote;
-                        
+                        myWords = myWords.filter(item => item.id != currentTossId);
+                        const searchString = searchInput.value.toLowerCase();
+                        renderTable(myWords.filter(item =>
+                            item.vocab.toLowerCase().includes(searchString) || item.meaning.includes(searchString)
+                        ));
+                        closeTossModal();
                     } else {
-                        alert('ไม่สามารถบันทึกโน้ตได้: ' + data.message);
-                        element.innerText = originalNote; // คืนค่ากลับถ้าเซฟพัง
+                        alert(data.message);
+                        closeTossModal();
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating note:', error);
-                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
-                    element.innerText = originalNote; // คืนค่ากลับถ้าเซฟพัง
+                    console.error('Error deleting word:', error);
+                    alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
+                    closeTossModal();
                 });
-            }
+        }
+
+        function saveNote(wordId, noteText) {
+            fetch(`http://127.0.0.1:5001/api/save_note/${wordId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ note: noteText })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Note saved:", noteText);
+                        const item = myWords.find(w => w.id === wordId);
+                        if (item) item.note = noteText;
+                    } else {
+                        console.error("Failed to save note:", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving note:', error);
+                });
         }
     </script>
-
 </body>
 
 </html>

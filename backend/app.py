@@ -171,6 +171,31 @@ def get_profile(username):
         if cursor: cursor.close()
         if conn: conn.close()
 
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    conn = None
+    cursor = None
+    try:
+        conn = get_mysql_connection()
+        if not conn:
+            return jsonify({"status": "error", "message": "Database connection failed"}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        # ดึงรายชื่อ 10 อันดับแรกที่มีคะแนนสูงสุด
+        cursor.execute("SELECT username, score, `rank` FROM users ORDER BY score DESC LIMIT 50")
+        top_players = cursor.fetchall()
+
+        return jsonify({
+            "status": "success",
+            "data": top_players
+        }), 200
+            
+    except mysql.connector.Error as err:
+        return jsonify({"status": "error", "message": str(err)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
 # 1. เพื่อใช้ส่ง "ข้อมูล" อย่างเดียว
 @app.route("/api/get_word")
 def get_word():
@@ -283,6 +308,34 @@ def update_note(word_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/check_play_status/<username>', methods=['GET'])
+def check_play_status(username):
+    conn = None
+    cursor = None
+    try:
+        conn = get_mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT last_play_date, `rank` FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"status": "error", "message": "ไม่พบผู้ใช้"}), 404
+            
+        today = date.today()
+        user_rank = user.get('rank', 'Bronze')
+        
+        # ถ้าเคยเล่นแล้วและตรงกับวันที่วันนี้ ให้สถานะเล่นแล้ว
+        if user['last_play_date'] and user['last_play_date'] == today:
+            return jsonify({"status": "played", "can_play": False, "rank": user_rank}), 200
+        else:
+            return jsonify({"status": "success", "can_play": True, "rank": user_rank}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+
 @app.route('/api/update_score', methods=['POST'])
 def update_score():
     data = request.json
@@ -307,15 +360,17 @@ def update_score():
 
         today = date.today()
 
-        # 🔴 ถ้าเล่นแล้ววันนี้ ห้ามเล่นซ้ำ
+        # 🔴 ถ้าเล่นแล้ววันนี้ ห้ามเล่นซ้ำ (กรณีหลุดจาก Frontend)
         if user['last_play_date'] and user['last_play_date'] == today:
             return jsonify({
                 "status": "error",
                 "message": "วันนี้คุณเล่นไปแล้ว! พรุ่งนี้ค่อยมาใหม่นะ 😊"
             }), 403
-            
+
         current_score = user['score'] if user['score'] else 0
         new_total_score = current_score + added_score # เอาคะแนนเก่า + คะแนนใหม่
+        if new_total_score < 0:
+            new_total_score = 0
         
         # 2. คำนวณ Rank ใหม่ (คุณสามารถปรับเกณฑ์คะแนนตรงนี้ได้ตามใจชอบ)
         new_rank = 'Bronze'
