@@ -274,7 +274,7 @@
 
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-
+            
             sysMsg.classList.remove('show');
 
             if (password !== confirmPassword) {
@@ -307,29 +307,40 @@
                 },
                 body: JSON.stringify(jsonData)
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        btnSubmit.innerHTML = "Registration Complete";
-                        btnSubmit.style.borderColor = "#69f0ae";
-                        btnSubmit.style.color = "#69f0ae";
-                        localStorage.setItem('username', jsonData.username);
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 1200);
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // กรณีสำเร็จ (โค้ดเดิมของคุณ)
+                    btnSubmit.innerHTML = "Registration Complete";
+                    btnSubmit.style.borderColor = "#69f0ae";
+                    btnSubmit.style.color = "#69f0ae";
+                    localStorage.setItem('username', jsonData.username);
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1200);
+                } else {
+                 
+                    let errorMessage = data.message; 
+                    
+                    if (errorMessage.toLowerCase().includes('email') || errorMessage.toLowerCase().includes('duplicate') || errorMessage.includes('ซ้ำ')) {
+                        sysMsg.innerHTML = "System Error: อีเมลนี้ถูกลงทะเบียนไปแล้วครับ";
                     } else {
-                        sysMsg.innerHTML = "System Error: " + data.message;
-                        sysMsg.classList.add('show');
-                        btnSubmit.innerHTML = "Register (ลงทะเบียน)";
-                        btnSubmit.disabled = false;
+                        // ถ้าเป็น Error อื่นๆ ก็โชว์ข้อความจาก Server ตามปกติ
+                        sysMsg.innerHTML = "System Error: " + errorMessage;
                     }
-                })
-                .catch(error => {
-                    sysMsg.innerHTML = "Network Error: ขาดการเชื่อมต่อกับเซิร์ฟเวอร์";
+
                     sysMsg.classList.add('show');
                     btnSubmit.innerHTML = "Register (ลงทะเบียน)";
                     btnSubmit.disabled = false;
-                });
+                }
+            })
+            .catch(error => {
+                // กรณีเน็ตหลุด หรือ Server ปิด (โค้ดเดิมของคุณ)
+                sysMsg.innerHTML = "Network Error: ขาดการเชื่อมต่อกับเซิร์ฟเวอร์";
+                sysMsg.classList.add('show');
+                btnSubmit.innerHTML = "Register (ลงทะเบียน)";
+                btnSubmit.disabled = false;
+            });
         });
     </script>
 </body>

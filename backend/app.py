@@ -52,28 +52,16 @@ def init_databases():
         try:
             cursor = conn.cursor()
             cursor.execute("""
-<<<<<<< Updated upstream
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(100) NOT NULL UNIQUE,
                 password VARCHAR(255) NOT NULL,
-                email VARCHAR(100),
+                email VARCHAR(100) NOT NULL UNIQUE,
                 score INT DEFAULT 0,
                 `rank` VARCHAR(25) DEFAULT 'Bronze',
                 last_play_date DATE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-=======
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    username VARCHAR(100) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
-                    email varchar(100) UNIQE,
-                    score int,
-                    `rank` varchar(25),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
->>>>>>> Stashed changes
             """)
 
             try:
@@ -137,6 +125,10 @@ def register():
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         if cursor.fetchone():
             return jsonify({"status": "error", "message": "Username already exists. Please choose a different one."}), 409
+        
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        if cursor.fetchone():
+            return jsonify({"status": "error", "message": "Email already exists. Please choose a different one."}), 409
         
         # บันทึกข้อมูลผู้ใช้ใหม่
         cursor.execute("INSERT INTO users (username, password, email, score, `rank`) VALUES (%s, %s, %s, %s, %s)", 
