@@ -159,6 +159,18 @@
             color: #fff;
             border-color: #ffd54f;
         }
+        .btn-danger {
+            background: linear-gradient(to bottom, #5a1e1e, #2a0a0a);
+            border: 1px solid #8c3a3a;
+            color: #ff9e9e;
+            margin-top: 15px; /* เว้นระยะห่างจากปุ่ม Return */
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(to bottom, #7a2a2a, #3a0f0f);
+            border-color: #ff4c4c;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -194,9 +206,10 @@
         </div>
 
         <a href="index.html" class="btn-action">Return to Guild</a>
+        <button id="deleteAccountBtn" class="btn-action btn-danger">Abandon Guild (Delete Account)</button>
     </div>
 
-    <script>
+<script>
         document.addEventListener('DOMContentLoaded', () => {
             const username = localStorage.getItem('username');
 
@@ -206,6 +219,7 @@
                 return;
             }
 
+    
             fetch(`http://127.0.0.1:5001/api/profile/${username}`)
                 .then(response => response.json())
                 .then(result => {
@@ -232,7 +246,36 @@
                     console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
                     alert("เชื่อมต่อกับเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบว่าเปิดรันไฟล์ app.py อยู่หรือไม่");
                 });
-        });
+
+  
+            const deleteBtn = document.getElementById('deleteAccountBtn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    const confirmDelete = confirm('คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีนี้? ข้อมูลและค่าสเตตัสทั้งหมดจะหายไปและไม่สามารถกู้คืนได้');
+                    
+                    if (confirmDelete) {
+                        fetch(`http://127.0.0.1:5001/api/profile/${username}`, {
+                            method: 'DELETE' // ใช้ Method DELETE
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.status === "success") {
+                                alert('ลบบัญชีเรียบร้อยแล้ว ลาก่อนนักเดินทาง...');
+                                localStorage.removeItem('username'); // ลบข้อมูลในเครื่อง
+                                window.location.href = 'login.html'; // เด้งกลับหน้า Login
+                            } else {
+                                alert("ไม่สามารถลบบัญชีได้: " + result.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("เกิดข้อผิดพลาดในการลบข้อมูล:", error);
+                            alert("เชื่อมต่อกับเซิร์ฟเวอร์ไม่ได้");
+                        });
+                    }
+                });
+            }
+
+        }); 
     </script>
 
 </body>

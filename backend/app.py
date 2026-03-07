@@ -52,6 +52,7 @@ def init_databases():
         try:
             cursor = conn.cursor()
             cursor.execute("""
+<<<<<<< Updated upstream
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(100) NOT NULL UNIQUE,
@@ -62,6 +63,17 @@ def init_databases():
                 last_play_date DATE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+=======
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    email varchar(100) UNIQE,
+                    score int,
+                    `rank` varchar(25),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+>>>>>>> Stashed changes
             """)
 
             try:
@@ -335,7 +347,39 @@ def check_play_status(username):
         if cursor: cursor.close()
         if conn: conn.close()
 
+@app.route('/api/profile/<username>', methods=['DELETE'])
+def delete_account(username):
+    try:
+        # 1. เชื่อมต่อ Database (ปรับบรรทัดนี้ให้ตรงกับตัวแปรที่คุณใช้ในโปรเจกต์)
+        conn = get_mysql_connection()
+        cursor = conn.cursor()
 
+        # 2. ตรวจสอบก่อนว่ามี User นี้อยู่จริงไหม (Option เสริม)
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"status": "error", "message": "ไม่พบผู้ใช้งานนี้ในระบบ"}), 404
+
+        # 3. สั่งลบข้อมูล
+        cursor.execute("DELETE FROM users WHERE username = %s", (username,))
+        conn.commit() # อย่าลืม commit เพื่อยืนยันการลบ
+
+        # 4. ปิดการเชื่อมต่อ
+        cursor.close()
+        # conn.close() # ปิดคอนเนคชันถ้าไม่ได้ใช้ Pool
+
+        return jsonify({
+            "status": "success", 
+            "message": "ลบบัญชีเรียบร้อยแล้ว"
+        }), 200
+
+    except Exception as e:
+        print("Error deleting account:", e)
+        return jsonify({
+            "status": "error", 
+            "message": "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์: " + str(e)
+        }), 500
 @app.route('/api/update_score', methods=['POST'])
 def update_score():
     data = request.json
