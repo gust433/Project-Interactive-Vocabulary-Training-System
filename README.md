@@ -1,7 +1,9 @@
 # วิธีรัน : 
     Backend :
         # 1
-        python -m venv venv
+        python -m venv venv 
+        or
+        py -m venv venv 
 
         # 2
         venv\Scripts\activate
@@ -15,6 +17,8 @@
 
         # 5
         python app.py
+        or 
+        py app.py
     Frontend :
         # 1
         (window):                python -m http.server 8000
