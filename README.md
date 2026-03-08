@@ -27,4 +27,4 @@
         # 2
         เข้าไปใน http://localhost:8000/
 
-# เหลือแก้ frontend สวยๆ
+# jwt ,test and deploy soon ...
