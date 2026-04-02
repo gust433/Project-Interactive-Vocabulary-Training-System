@@ -21,6 +21,12 @@ except:
     CONFIG_JWT_SECRET = 'fdslkfjsdlkufewhjroiewurewrewqwe'
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', CONFIG_JWT_SECRET)
+app.config['MONGO_URL'] = os.getenv('MONGO_URL', 'mongodb://localhost:27017/')
+app.config['MONGO_DB_NAME'] = os.getenv('MONGO_DB_NAME', 'vocabdb')
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'rootpassword')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'vocabdb')
 
 jwt = JWTManager(app)
 
