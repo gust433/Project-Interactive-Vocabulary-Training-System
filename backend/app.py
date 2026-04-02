@@ -23,10 +23,7 @@ except:
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', CONFIG_JWT_SECRET)
 app.config['MONGO_URL'] = os.getenv('MONGO_URL', 'mongodb://localhost:27017/')
 app.config['MONGO_DB_NAME'] = os.getenv('MONGO_DB_NAME', 'vocabdb')
-app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
-app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
-app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'rootpassword')
-app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'vocabdb')
+
 
 jwt = JWTManager(app)
 
@@ -39,8 +36,6 @@ def jwt_required(f):
             return jsonify({"status": "error", "message": str(e) or "Invalid token"}), 401
         return f(*args, **kwargs)
     return wrapper
-
-db = get_mongo_collection()
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -533,6 +528,7 @@ def update_score():
         if conn: conn.close()
 
 if __name__ == '__main__':
+    db = get_mongo_collection()
     try:
         init_databases()
         seed_vocabulary()
