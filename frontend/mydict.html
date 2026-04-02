@@ -382,7 +382,7 @@
                 return;
             }
 
-            fetch(`http://127.0.0.1:5001/api/mydict/${username}`, { headers: authHeaders(false) })
+            fetch(`https://project-vocabdb.onrender.com/api/mydict/${username}`, { headers: authHeaders(false) })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -451,7 +451,7 @@
         function confirmToss() {
             if (!currentTossId) return;
 
-            fetch(`http://127.0.0.1:5001/api/mydict/${currentTossId}`, {
+            fetch(`https://project-vocabdb.onrender.com/api/mydict/${currentTossId}`, {
                 method: 'DELETE',
                 headers: authHeaders(false)
             })
@@ -477,7 +477,7 @@
         }
 
         function saveNote(wordId, noteText) {
-            fetch(`http://127.0.0.1:5001/api/save_note/${wordId}`, {
+            fetch(`https://project-vocabdb.onrender.com/api/save_note/${wordId}`, {
                 method: 'POST',
                 headers: authHeaders(),
                 body: JSON.stringify({ note: noteText })

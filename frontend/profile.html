@@ -228,7 +228,7 @@
             }
 
     
-            fetch(`http://127.0.0.1:5001/api/profile/${username}`, { headers: authHeaders(false)})
+            fetch(`https://project-vocabdb.onrender.com/api/profile/${username}`, { headers: authHeaders(false)})
                 .then(response => response.json())
                 .then(result => {
                     if (result.status === "success") {
@@ -262,7 +262,7 @@
                     const confirmDelete = confirm('คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีนี้? ข้อมูลและค่าสเตตัสทั้งหมดจะหายไปและไม่สามารถกู้คืนได้');
                     
                     if (confirmDelete) {
-                        fetch(`http://127.0.0.1:5001/api/profile/${username}`, {
+                        fetch(`https://project-vocabdb.onrender.com/api/profile/${username}`, {
                             method: 'DELETE', // ใช้ Method DELETE
                             headers: {
                                 'Content-Type': 'application/json',

@@ -300,7 +300,7 @@
             const formData = new FormData(form);
             const jsonData = Object.fromEntries(formData);
 
-            fetch('http://localhost:5001/api/register', {
+            fetch('https://project-vocabdb.onrender.com/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -20,10 +20,5 @@
         or 
         py app.py
     Frontend :
-        # 1
-        (window):                python -m http.server 8000
-        (ถ้า linux/mac รันไม่ได้):   python3 -m http.server 8000
-
-        # 2
-        เข้าไปใน http://localhost:8000/
+#        https://vocabulary-frontend.vercel.app/
 

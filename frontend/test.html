@@ -597,7 +597,7 @@
 
         async function loadQuestion() {
             try {
-                const res = await fetch("http://127.0.0.1:5001/api/get_word", { headers: authHeaders(false) });
+                const res = await fetch("https://project-vocabdb.onrender.com/api/get_word", { headers: authHeaders(false) });
                 const data = await res.json();
 
                 wordDisplay.innerText = data.word;
@@ -766,7 +766,7 @@
             }
 
             try {
-                const response = await fetch("http://127.0.0.1:5001/api/save_word", {
+                const response = await fetch("https://project-vocabdb.onrender.com/api/save_word", {
                     method: "POST",
                     headers: authHeaders(),
                     body: JSON.stringify({
@@ -805,7 +805,7 @@
             if (!username || scoreChange === 0) return;
 
             try {
-                const res = await fetch("http://127.0.0.1:5001/api/update_score", {
+                const res = await fetch("https://project-vocabdb.onrender.com/api/update_score", {
                     method: "POST",
                     headers: authHeaders(),
                     body: JSON.stringify({
@@ -848,7 +848,7 @@
                 document.getElementById('player-party-name').innerText = `1. ${username}`;
 
                 try {
-                    const res = await fetch(`http://127.0.0.1:5001/api/check_play_status/${username}`, { headers: authHeaders(false) });
+                    const res = await fetch(`https://project-vocabdb.onrender.com/api/check_play_status/${username}`, { headers: authHeaders(false) });
                     const data = await res.json();
 
                     let userRank = data.rank || "Bronze";
