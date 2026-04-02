@@ -18,7 +18,7 @@ CORS(app)
 try:
     from local_config import CONFIG_JWT_SECRET
 except:
-    CONFIG_JWT_SECRET = 'fdslkfjsdlkufewhjroiewurewrew'
+    CONFIG_JWT_SECRET = 'fdslkfjsdlkufewhjroiewurewrewqwe'
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', CONFIG_JWT_SECRET)
 
