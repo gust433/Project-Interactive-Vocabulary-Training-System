@@ -564,12 +564,12 @@ def update_score():
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+        
+try:
+    init_databases()
+    seed_vocabulary()
+except Exception as e:
+    print(f"Warning: DB init failed: {e}")
 
 if __name__ == '__main__':
-    try:
-        init_databases()
-        seed_vocabulary()
-    except Exception as e:
-        print(f"Warning: DB init failed: {e}")
-
     app.run(host='0.0.0.0', port=5001, debug=True)
