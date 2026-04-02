@@ -26,6 +26,7 @@ app.config['MONGO_DB_NAME'] = os.getenv('MONGO_DB_NAME', 'vocabdb')
 
 
 jwt = JWTManager(app)
+db = None
 
 def jwt_required(f):
     @wraps(f)
@@ -76,6 +77,7 @@ def login():
 def init_databases():
     # --- Initialize MySQL ---
     conn = get_mysql_connection()
+    database = get_db() # เรียกฟังก์ชันนี้เพื่อให้แน่ใจว่าเชื่อมต่อ MongoDB ได้ก่อนจะเริ่มทำงานกับ MySQL
     if conn:
         try:
             cursor = conn.cursor()
@@ -111,14 +113,21 @@ def init_databases():
     try:
         # Create a unique index on the 'username' field in the 'users' collection
         # This guarantees database-level enforcement of unique usernames
-        db.users.create_index("username", unique=True)
+        database.users.create_index("username", unique=True)
         print("MongoDB unique index on 'username' initialized successfully.")
     except Exception as e:
         print(f"Warning: MongoDB init failed: {e}")
 
+def get_db():
+    global db
+    if db is None:
+        db = get_mongo_collection()
+    return db
+
 def seed_vocabulary():
-    if db is not None:
-        collection = db["words"]
+    database = get_db()
+    if database is not None:
+        collection = database["words"]
         if collection.count_documents({}) == 0:
             try:
                 with open('Oxford-3000.json', 'r', encoding='utf-8') as f:
@@ -249,7 +258,10 @@ def get_leaderboard():
 @app.route("/api/get_word", endpoint='get_word')
 @jwt_required
 def get_word():
-    collection = db["words"]
+    database = get_db()
+    if database is None:
+        return jsonify({"error": "Database connection failed"}), 500
+    collection = database["words"]
     docs = list(collection.aggregate([{"$sample": {"size": 1}}]))
     
     if not docs:
@@ -278,10 +290,12 @@ def get_my_dict(username):
     current_user = get_jwt_identity()
     if current_user != username:
         return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
-
+    database = get_db()
+    if database is None:
+        return jsonify({"status": "error", "message": "Database connection failed"}), 500   
     try:
         # ใช้/สร้าง Collection ชื่อ user_dict ใน MongoDB
-        collection = db["user_dict"] 
+        collection = database["user_dict"] 
         # ค้นหาคำศัพท์ทั้งหมดที่เป็นของ username นี้
         words_cursor = collection.find({"username": username})
         
@@ -303,8 +317,11 @@ def get_my_dict(username):
 @jwt_required
 def delete_my_word(word_id):
     current_user = get_jwt_identity()
+    database = get_db()
+    if database is None:
+        return jsonify({"status": "error", "message": "Database connection failed"}), 500
     try:
-        collection = db["user_dict"]
+        collection = database["user_dict"]
         # ค้นหาไอดีของคำศัพท์เพื่อยืนยันเจ้าของข้อมูล
         word = collection.find_one({"_id": ObjectId(word_id)})
         if not word:
@@ -331,7 +348,9 @@ def save_word():
     username = data.get('username')
     vocab = data.get('vocab')
     meaning = data.get('meaning')
-
+    database = get_db()
+    if database is None:
+        return jsonify({"status": "error", "message": "Database connection failed"}), 500
     if username != current_user:
         return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
     
@@ -339,7 +358,7 @@ def save_word():
         return jsonify({"status": "error", "message": "ข้อมูลไม่ครบถ้วน"}), 400
         
     try:
-        collection = db["user_dict"]
+        collection = database["user_dict"]
         # เช็คว่าเคยเซฟคำนี้ไว้แล้วหรือยัง
         existing = collection.find_one({"username": username, "vocab": vocab})
         if existing:
@@ -362,9 +381,11 @@ def update_note(word_id):
     current_user = get_jwt_identity()
     data = request.json
     note = data.get('note', '') # อนุญาตให้ลบโน้ตจนว่างเปล่าได้
-    
+    database = get_db()
+    if database is None:
+        return jsonify({"status": "error", "message": "Database connection failed"}), 500
     try:
-        collection = db["user_dict"]
+        collection = database["user_dict"]
         word = collection.find_one({"_id": ObjectId(word_id)})
         if not word:
             return jsonify({"status": "error", "message": "ไม่พบคำศัพท์นี้ในระบบ"}), 404
@@ -422,30 +443,39 @@ def delete_account(username):
     current_user = get_jwt_identity()
     if current_user != username:
         return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
-
+    conn = None
+    cursor = None
+    database = get_db() # เรียกใช้ MongoDB
     try:
-        # 1. เชื่อมต่อ Database (ปรับบรรทัดนี้ให้ตรงกับตัวแปรที่คุณใช้ในโปรเจกต์)
+        # 1. เชื่อมต่อ MySQL
         conn = get_mysql_connection()
-        cursor = conn.cursor()
+        if not conn:
+            return jsonify({"status": "error", "message": "Database connection failed"}), 500
+            
+        cursor = conn.cursor(dictionary=True)
 
-        # 2. ตรวจสอบก่อนว่ามี User นี้อยู่จริงไหม (Option เสริม)
+        # 2. ตรวจสอบว่ามี User นี้อยู่จริงในระบบ MySQL หรือไม่
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
         
         if not user:
             return jsonify({"status": "error", "message": "ไม่พบผู้ใช้งานนี้ในระบบ"}), 404
 
-        # 3. สั่งลบข้อมูล
+        # 3. สั่งลบข้อมูลจาก MySQL
         cursor.execute("DELETE FROM users WHERE username = %s", (username,))
-        conn.commit() # อย่าลืม commit เพื่อยืนยันการลบ
+        conn.commit() # ยืนยันการลบ
 
-        # 4. ปิดการเชื่อมต่อ
-        cursor.close()
-        # conn.close() # ปิดคอนเนคชันถ้าไม่ได้ใช้ Pool
+        # 4. สั่งลบข้อมูลที่เกี่ยวข้องใน MongoDB
+        if database is not None:
+            # ลบคำศัพท์ทั้งหมดที่ผู้ใช้นี้เคยบันทึกไว้ใน collection 'user_dict'
+            database["user_dict"].delete_many({"username": username})
+            
+            # (เผื่อไว้) ถ้าคุณมี collection 'users' ใน MongoDB ตามที่ init_databases() เคยสร้าง index ไว้ ก็สั่งลบด้วย
+            database["users"].delete_one({"username": username})
 
         return jsonify({
             "status": "success", 
-            "message": "ลบบัญชีเรียบร้อยแล้ว"
+            "message": "ลบบัญชีและข้อมูลทั้งหมดเรียบร้อยแล้ว"
         }), 200
 
     except Exception as e:
@@ -454,6 +484,14 @@ def delete_account(username):
             "status": "error", 
             "message": "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์: " + str(e)
         }), 500
+        
+    finally:
+        # 5. ปิด Connection เสมอ เพื่อป้องกันปัญหา Connection Leak
+        if cursor: 
+            cursor.close()
+        if conn: 
+            conn.close()
+
 @app.route('/api/update_score', methods=['POST'], endpoint='update_score')
 @jwt_required
 def update_score():
@@ -528,7 +566,6 @@ def update_score():
         if conn: conn.close()
 
 if __name__ == '__main__':
-    db = get_mongo_collection()
     try:
         init_databases()
         seed_vocabulary()
