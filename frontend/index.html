@@ -351,6 +351,7 @@
 
         function confirmLogout() {
             localStorage.removeItem('username');
+            localStorage.removeItem('token'); // ลบ JWT Token เมื่อออกจากระบบ
             window.location.href = 'login.html';
         }
     </script>

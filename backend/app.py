@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from db import get_mongo_collection, get_mysql_connection
 import mysql.connector
@@ -6,16 +6,43 @@ import random
 from bson.objectid import ObjectId
 import json
 from datetime import date
+import bcrypt
+import os
+from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import JWTManager
+from functools import wraps
 
 app = Flask(__name__)
 CORS(app)
+
+try:
+    from local_config import CONFIG_JWT_SECRET
+except:
+    CONFIG_JWT_SECRET = 'fdslkfjsdlkufewhjroiewurewrew'
+
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', CONFIG_JWT_SECRET)
+
+jwt = JWTManager(app)
+
+def jwt_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            verify_jwt_in_request()
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e) or "Invalid token"}), 401
+        return f(*args, **kwargs)
+    return wrapper
+
 db = get_mongo_collection()
-app.secret_key = 'your_secret_key'
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    username = request.form.get('username') or request.json.get('username')
-    password = request.form.get('password') or request.json.get('password')
+    username = request.form.get('username') or (request.json and request.json.get('username'))
+    password = request.form.get('password') or (request.json and request.json.get('password'))
+
+    if not username or not password:
+        return jsonify({"status": "error", "message": "Missing username or password"}), 400
 
     conn = None
     cursor = None
@@ -25,18 +52,18 @@ def login():
             return jsonify({"status": "error", "message": "Database connection failed"}), 500
         
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        cursor.execute("SELECT username, password FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
-        if user:
-            # รหัสผ่านถูกต้อง ส่ง JSON กลับไปบอก Frontend
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            token = create_access_token(identity=username)
             return jsonify({
-                "status": "success", 
+                "status": "success",
                 "message": "Login successful",
-                "username": username
+                "username": username,
+                "token": token
             }), 200
         else:
-            # รหัสผ่านผิด ส่ง JSON แจ้งเตือน
             return jsonify({"status": "error", "message": "Invalid username or password"}), 401
             
     except mysql.connector.Error as err:
@@ -107,10 +134,13 @@ def register():
     username = request.form.get('username') or (request.json and request.json.get('username'))
     password = request.form.get('password') or (request.json and request.json.get('password'))
     email = request.form.get('email') or (request.json and request.json.get('email'))
-    
+
     # ดักจับกรณีที่ส่งข้อมูลมาไม่ครบ
     if not username or not password or not email:
         return jsonify({"status": "error", "message": "Please fill in all fields."}), 400
+
+    # hash password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
     conn = None
     cursor = None
@@ -130,15 +160,22 @@ def register():
         if cursor.fetchone():
             return jsonify({"status": "error", "message": "Email already exists. Please choose a different one."}), 409
         
-        # บันทึกข้อมูลผู้ใช้ใหม่
+        # บันทึกข้อมูลผู้ใช้ใหม่ (password hashed)
         cursor.execute("INSERT INTO users (username, password, email, score, `rank`) VALUES (%s, %s, %s, %s, %s)", 
-                       (username, password, email, 0, 'Bronze'))
+                       (username, hashed_password, email, 0, 'Bronze'))
         conn.commit()
 
         # (ถ้ามีการใช้ MongoDB ควบคู่กัน สามารถเพิ่มโค้ด insert_one ได้ที่นี่)
 
-        # ส่ง JSON บอกว่าสำเร็จ (ไม่ต้อง set session และไม่ต้อง redirect แล้ว)
-        return jsonify({"status": "success", "message": "Registration successful"}), 201
+        # สร้าง JWT token ให้ผู้ใช้หลังลงทะเบียนสำเร็จ
+        token = create_access_token(identity=username)
+
+        return jsonify({
+            "status": "success",
+            "message": "Registration successful",
+            "username": username,
+            "token": token
+        }), 201
         
     except mysql.connector.Error as err:
         return jsonify({"status": "error", "message": str(err)}), 500
@@ -146,8 +183,13 @@ def register():
         if cursor: cursor.close()
         if conn: conn.close()
 
-@app.route('/api/profile/<username>', methods=['GET'])
+@app.route('/api/profile/<username>', methods=['GET'], endpoint='get_profile')
+@jwt_required
 def get_profile(username):
+    current_user = get_jwt_identity()
+    if current_user != username:
+        return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
+
     conn = None
     cursor = None
     try:
@@ -175,8 +217,10 @@ def get_profile(username):
         if cursor: cursor.close()
         if conn: conn.close()
 
-@app.route('/api/leaderboard', methods=['GET'])
+@app.route('/api/leaderboard', methods=['GET'], endpoint='leaderboard')
+@jwt_required
 def get_leaderboard():
+    current_user = get_jwt_identity()
     conn = None
     cursor = None
     try:
@@ -201,7 +245,8 @@ def get_leaderboard():
         if conn: conn.close()
 
 # 1. เพื่อใช้ส่ง "ข้อมูล" อย่างเดียว
-@app.route("/api/get_word")
+@app.route("/api/get_word", endpoint='get_word')
+@jwt_required
 def get_word():
     collection = db["words"]
     docs = list(collection.aggregate([{"$sample": {"size": 1}}]))
@@ -226,8 +271,13 @@ def get_word():
     })
 
 # API: ดึงคำศัพท์ทั้งหมดของผู้ใช้นั้นๆ
-@app.route('/api/mydict/<username>', methods=['GET'])
+@app.route('/api/mydict/<username>', methods=['GET'], endpoint='get_my_dict')
+@jwt_required
 def get_my_dict(username):
+    current_user = get_jwt_identity()
+    if current_user != username:
+        return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
+
     try:
         # ใช้/สร้าง Collection ชื่อ user_dict ใน MongoDB
         collection = db["user_dict"] 
@@ -248,10 +298,19 @@ def get_my_dict(username):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # API: ลบคำศัพท์ออกจากคลัง
-@app.route('/api/mydict/<word_id>', methods=['DELETE'])
+@app.route('/api/mydict/<word_id>', methods=['DELETE'], endpoint='delete_my_word')
+@jwt_required
 def delete_my_word(word_id):
+    current_user = get_jwt_identity()
     try:
         collection = db["user_dict"]
+        # ค้นหาไอดีของคำศัพท์เพื่อยืนยันเจ้าของข้อมูล
+        word = collection.find_one({"_id": ObjectId(word_id)})
+        if not word:
+            return jsonify({"status": "error", "message": "ไม่พบคำศัพท์นี้"}), 404
+        if word.get('username') != current_user:
+            return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
+
         # ค้นหาและลบข้อมูลด้วย _id ของ MongoDB
         result = collection.delete_one({"_id": ObjectId(word_id)})
         
@@ -263,12 +322,17 @@ def delete_my_word(word_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # API: บันทึกคำศัพท์ใหม่ (เตรียมไว้ให้หน้า test.html)
-@app.route('/api/save_word', methods=['POST'])
+@app.route('/api/save_word', methods=['POST'], endpoint='save_word')
+@jwt_required
 def save_word():
+    current_user = get_jwt_identity()
     data = request.json
     username = data.get('username')
     vocab = data.get('vocab')
     meaning = data.get('meaning')
+
+    if username != current_user:
+        return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
     
     if not username or not vocab or not meaning:
         return jsonify({"status": "error", "message": "ข้อมูลไม่ครบถ้วน"}), 400
@@ -291,13 +355,20 @@ def save_word():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
-@app.route('/api/save_note/<word_id>', methods=['POST'])
+@app.route('/api/save_note/<word_id>', methods=['POST'], endpoint='update_note')
+@jwt_required
 def update_note(word_id):
+    current_user = get_jwt_identity()
     data = request.json
     note = data.get('note', '') # อนุญาตให้ลบโน้ตจนว่างเปล่าได้
     
     try:
         collection = db["user_dict"]
+        word = collection.find_one({"_id": ObjectId(word_id)})
+        if not word:
+            return jsonify({"status": "error", "message": "ไม่พบคำศัพท์นี้ในระบบ"}), 404
+        if word.get('username') != current_user:
+            return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
         # อัปเดตข้อมูล note โดยหาจาก _id ของคำศัพท์นั้นๆ
         result = collection.update_one(
             {"_id": ObjectId(word_id)},
@@ -312,8 +383,13 @@ def update_note(word_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/check_play_status/<username>', methods=['GET'])
+@app.route('/api/check_play_status/<username>', methods=['GET'], endpoint='check_play_status')
+@jwt_required
 def check_play_status(username):
+    current_user = get_jwt_identity()
+    if current_user != username:
+        return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
+
     conn = None
     cursor = None
     try:
@@ -339,8 +415,13 @@ def check_play_status(username):
         if cursor: cursor.close()
         if conn: conn.close()
 
-@app.route('/api/profile/<username>', methods=['DELETE'])
+@app.route('/api/profile/<username>', methods=['DELETE'], endpoint='delete_account')
+@jwt_required
 def delete_account(username):
+    current_user = get_jwt_identity()
+    if current_user != username:
+        return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
+
     try:
         # 1. เชื่อมต่อ Database (ปรับบรรทัดนี้ให้ตรงกับตัวแปรที่คุณใช้ในโปรเจกต์)
         conn = get_mysql_connection()
@@ -372,14 +453,18 @@ def delete_account(username):
             "status": "error", 
             "message": "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์: " + str(e)
         }), 500
-@app.route('/api/update_score', methods=['POST'])
+@app.route('/api/update_score', methods=['POST'], endpoint='update_score')
+@jwt_required
 def update_score():
+    current_user = get_jwt_identity()
     data = request.json
     username = data.get('username')
     added_score = data.get('score', 0) # คะแนนที่ได้จากการเล่นรอบนี้
     
     if not username:
         return jsonify({"status": "error", "message": "ไม่พบชื่อผู้ใช้"}), 400
+    if username != current_user:
+        return jsonify({"status": "error", "message": "Forbidden: access denied."}), 403
 
     conn = None
     cursor = None

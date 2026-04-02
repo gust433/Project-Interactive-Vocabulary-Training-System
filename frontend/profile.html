@@ -210,6 +210,14 @@
     </div>
 
 <script>
+        function authHeaders(json = true) {
+            const token = localStorage.getItem('token');
+            const headers = {};
+            if (json) headers['Content-Type'] = 'application/json';
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            return headers;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const username = localStorage.getItem('username');
 
@@ -220,7 +228,7 @@
             }
 
     
-            fetch(`http://127.0.0.1:5001/api/profile/${username}`)
+            fetch(`http://127.0.0.1:5001/api/profile/${username}`, { headers: authHeaders(false)})
                 .then(response => response.json())
                 .then(result => {
                     if (result.status === "success") {
@@ -239,7 +247,7 @@
                             rankIcon.style.display = 'block';
                         }
                     } else {
-                        alert("ไม่สามารถดึงข้อมูลโปรไฟล์ได้: " + result.message);
+                        alert("ไม่สามารถดึงข้อมูลโปรไฟล์ได้: " + (result.message || 'Unknown error'));
                     }
                 })
                 .catch(error => {
@@ -255,7 +263,11 @@
                     
                     if (confirmDelete) {
                         fetch(`http://127.0.0.1:5001/api/profile/${username}`, {
-                            method: 'DELETE' // ใช้ Method DELETE
+                            method: 'DELETE', // ใช้ Method DELETE
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}` // ส่ง Token ไปด้วย
+                            }
                         })
                         .then(response => response.json())
                         .then(result => {

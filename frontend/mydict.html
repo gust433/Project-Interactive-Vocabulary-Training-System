@@ -362,6 +362,14 @@
     </div>
 
     <script>
+        function authHeaders(json = true) {
+            const token = localStorage.getItem('token');
+            const headers = {};
+            if (json) headers['Content-Type'] = 'application/json';
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            return headers;
+        }
+
         let myWords = [];
         const tableBody = document.getElementById('dict-body');
         const searchInput = document.getElementById('searchInput');
@@ -374,7 +382,7 @@
                 return;
             }
 
-            fetch(`http://127.0.0.1:5001/api/mydict/${username}`)
+            fetch(`http://127.0.0.1:5001/api/mydict/${username}`, { headers: authHeaders(false) })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -444,7 +452,8 @@
             if (!currentTossId) return;
 
             fetch(`http://127.0.0.1:5001/api/mydict/${currentTossId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: authHeaders(false)
             })
                 .then(response => response.json())
                 .then(data => {
@@ -470,9 +479,7 @@
         function saveNote(wordId, noteText) {
             fetch(`http://127.0.0.1:5001/api/save_note/${wordId}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: authHeaders(),
                 body: JSON.stringify({ note: noteText })
             })
                 .then(response => response.json())

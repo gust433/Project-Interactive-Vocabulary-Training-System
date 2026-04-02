@@ -240,6 +240,14 @@
     </div>
 
     <script>
+        function authHeaders(json = true) {
+            const token = localStorage.getItem('token');
+            const headers = {};
+            if (json) headers['Content-Type'] = 'application/json';
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            return headers;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchLeaderboard();
         });
@@ -248,7 +256,10 @@
             const listContainer = document.getElementById('leaderboardList');
 
             try {
-                const response = await fetch('http://127.0.0.1:5001/api/leaderboard');
+                const response = await fetch('http://127.0.0.1:5001/api/leaderboard', {
+                    method: 'GET',
+                    headers: authHeaders(false)
+                });
                 const result = await response.json();
 
                 if (result.status === 'success') {

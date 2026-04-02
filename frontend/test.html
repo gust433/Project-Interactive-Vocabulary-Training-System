@@ -557,6 +557,14 @@
         const comboDisplay = document.getElementById('combo-display');
         const screenFlash = document.getElementById('screen-flash');
 
+        function authHeaders(json = true) {
+            const token = localStorage.getItem('token');
+            const headers = {};
+            if (json) headers['Content-Type'] = 'application/json';
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            return headers;
+        }
+
         let timerInterval;
         let timeLeft = 6.0;
 
@@ -589,7 +597,7 @@
 
         async function loadQuestion() {
             try {
-                const res = await fetch("http://127.0.0.1:5001/api/get_word");
+                const res = await fetch("http://127.0.0.1:5001/api/get_word", { headers: authHeaders(false) });
                 const data = await res.json();
 
                 wordDisplay.innerText = data.word;
@@ -760,9 +768,7 @@
             try {
                 const response = await fetch("http://127.0.0.1:5001/api/save_word", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: authHeaders(),
                     body: JSON.stringify({
                         username: username,
                         vocab: wordDisplay.innerText,
@@ -801,9 +807,7 @@
             try {
                 const res = await fetch("http://127.0.0.1:5001/api/update_score", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: authHeaders(),
                     body: JSON.stringify({
                         username: username,
                         score: scoreChange
@@ -844,7 +848,7 @@
                 document.getElementById('player-party-name').innerText = `1. ${username}`;
 
                 try {
-                    const res = await fetch(`http://127.0.0.1:5001/api/check_play_status/${username}`);
+                    const res = await fetch(`http://127.0.0.1:5001/api/check_play_status/${username}`, { headers: authHeaders(false) });
                     const data = await res.json();
 
                     let userRank = data.rank || "Bronze";
