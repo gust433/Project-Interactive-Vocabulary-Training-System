@@ -2,7 +2,7 @@ import os
 import mysql.connector
 from pymongo import MongoClient
 
-MONGO_URL = 'mongodb://@localhost:27017/'
+MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017/')
 DB_NAME = os.getenv('MONGO_DB_NAME', 'vocabdb')
 
 def get_mysql_connection():
@@ -21,9 +21,8 @@ def get_mysql_connection():
 
 def get_mongo_collection():
     try:
-
-        client = MongoClient("mongodb://localhost:27017/")
-        db = client["vocabdb"]
+        client = MongoClient(os.getenv('MONGO_URL', 'mongodb://localhost:27017/'))
+        db = client[os.getenv('MONGO_DB_NAME', 'vocabdb')]
         return db
 
     except Exception as e:

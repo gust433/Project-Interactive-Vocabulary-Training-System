@@ -27,4 +27,3 @@
         # 2
         เข้าไปใน http://localhost:8000/
 
-# jwt ,test and deploy soon ...
